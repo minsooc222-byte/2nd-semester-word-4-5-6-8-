@@ -30,6 +30,13 @@ body.keyboard-open #view-quiz .q-label{font-size:11px}
 body.keyboard-open #view-quiz .answer-row{position:fixed;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));bottom:var(--keyboard-bottom,0px);padding:8px;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 -5px 20px #00000012}
 body.keyboard-open #view-quiz .quiz-bottom{position:static;flex-wrap:wrap}
 body.keyboard-open #view-quiz .feedback{margin-bottom:70px}
+body.keyboard-open #view-quiz{scroll-margin-top:8px}
+body.keyboard-open #view-quiz .panel{max-height:calc(100dvh - var(--keyboard-bottom,0px) - env(safe-area-inset-top) - 8px);overflow-y:auto;overscroll-behavior:contain}
+body.keyboard-open #view-quiz .answer-row{z-index:9999}
+body.keyboard-open #view-quiz .answer-row input{font-size:16px;min-height:44px}
+@supports not (height: 100dvh){
+  body.keyboard-open #view-quiz .panel{max-height:calc(100vh - var(--keyboard-bottom,0px) - 8px)}
+}
 @media(min-width:700px){.app{padding-left:22px;padding-right:22px}.top{align-items:center;flex-direction:row}.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}.list{grid-template-columns:repeat(auto-fill,minmax(112px,1fr))}}
 @media(orientation:landscape) and (max-height:600px){#view-quiz .q-char{font-size:64px}#view-quiz .question{padding:0 0 5px}#view-quiz .progress{margin:5px 0 8px}}
 
@@ -98,7 +105,27 @@ if(quizMode==='mean'){html=`<div class="question"><div class="q-label">이 뜻�
 else if(quizMode==='char'){html=`<div class="question"><div class="q-label">이 한자의 뜻과 음을 입력하세요</div><div class="q-char">${e.char}</div></div><div class="answer-row"><input class="field" id="answerInput" autocomplete="off" placeholder="예: 회복할 복" enterkeyhint="go"><button class="btn primary" id="submitAnswer">정답 확인</button></div>`;}
 else{const sound=$('soundGrid').querySelector('.sound-btn.active')?.dataset.sound||'';const samePool=DATA.filter(x=>x.char!==e.char&&x.sound.split('/').includes(sound));const otherPool=DATA.filter(x=>x.char!==e.char&&!x.sound.split('/').includes(sound));if(!samePool.length){quizMode='char';renderQuestion();return;}const correct=shuffle(samePool)[0];quiz[qi]._matchCorrect=correct;const opts=shuffle([correct,...shuffle(samePool.filter(x=>x.char!==correct.char)).slice(0,2),...shuffle(otherPool).slice(0,2)]);quiz[qi]._options=opts;html=`<div class="question"><div class="q-label">다음 한자와 같은 음인 다른 한자를 고르세요</div><div class="q-char">${e.char}</div></div><div class="options">${opts.map(x=>`<button class="option" data-option="${x.char}">${x.char}</button>`).join('')}</div><div id="feedback"></div>`;}
 $('questionArea').innerHTML=html;
-if(quizMode!=='match'){const inp=$('answerInput');$('submitAnswer').onclick=submitAnswer;inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.isComposing&&ev.keyCode!==229){ev.preventDefault();ev.stopPropagation();if(!answered){submitAnswer();}else{next();}}});setTimeout(()=>{try{inp.focus({preventScroll:true});if(typeof inp.setSelectionRange==='function')inp.setSelectionRange(inp.value.length,inp.value.length);}catch(e){}},80);}
+if(quizMode!=='match'){
+  const inp=$('answerInput');
+  $('submitAnswer').onclick=submitAnswer;
+  inp.addEventListener('keydown',ev=>{
+    if(ev.key==='Enter'&&!ev.isComposing&&ev.keyCode!==229){
+      ev.preventDefault();
+      ev.stopPropagation();
+      if(!answered){submitAnswer();}
+      else{next();}
+      // Keep focus on the newly-rendered answer input during the same Enter gesture.
+      const current=$('answerInput');
+      if(current){try{current.focus({preventScroll:true});}catch(e){current.focus();}}
+    }
+  });
+  // Focus synchronously after rendering so iPad Safari is less likely to dismiss
+  // the software keyboard when the previous input is replaced.
+  try{
+    inp.focus({preventScroll:true});
+    if(typeof inp.setSelectionRange==='function')inp.setSelectionRange(inp.value.length,inp.value.length);
+  }catch(e){}
+}
 else{$('questionArea').querySelectorAll('[data-option]').forEach(b=>b.onclick=()=>submitMatch(b.dataset.option));}
 $('progressBar').style.width=`${qi/quiz.length*100}%`;}
 function submitAnswer(){if(answered)return;const e=quiz[qi],raw=$('answerInput').value.trim();if(!raw){$('answerInput').focus();return;}let correct=false;if(quizMode==='mean')correct=norm(raw)===norm(e.char);else correct=norm(raw)===norm(`${e.mean} ${e.sound}`)||norm(raw)===norm(`${e.sound} ${e.mean}`)||norm(raw)===norm(e.mean)||norm(raw)===norm(e.sound);recordAnswer(e,raw,correct);showFeedback(e,raw,correct);$('nextQuestion').disabled=false;}
@@ -106,7 +133,17 @@ function submitMatch(c){if(answered)return;const e=quiz[qi],correct=quiz[qi]._ma
 function recordAnswer(e,raw,correct,matchCorrect=null){answered=true;state.totalAnswered++;if(correct)state.totalCorrect++;else state.wrong[e.char]=(state.wrong[e.char]||0)+1;state.correct[e.char]=(state.correct[e.char]||0)+(correct?1:0);save();quizResults.push({entry:e,raw,correct,matchCorrect});}
 function showFeedback(e,raw,correct){const box=document.createElement('div');box.className='feedback '+(correct?'':'bad');const right=quizMode==='mean'?e.char:`${e.mean} ${e.sound}`;box.innerHTML=`<strong>${correct?'정답입니다!':'오답입니다.'}</strong><div>내 답: <b>${escapeHtml(raw)}</b></div><div>정답: <b>${right}</b></div><div class="muted" style="margin-top:4px">${e.char} · ${e.mean} · 음 ${e.sound}</div>`;$('questionArea').appendChild(box);}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function next(){if(!answered&&qi>=quizResults.length)return;const keepKeyboard=document.body.classList.contains('keyboard-open')||document.activeElement?.id==='answerInput';qi++;renderQuestion();if(!keepKeyboard){document.querySelector('#view-quiz .panel').scrollIntoView({block:'start',behavior:'smooth'});}else{requestAnimationFrame(()=>{const inp=$('answerInput');if(inp){try{inp.focus({preventScroll:true});}catch(e){inp.focus();}}});}}
+function next(){
+  if(!answered&&qi>=quizResults.length)return;
+  const keepKeyboard=document.body.classList.contains('keyboard-open')||document.activeElement?.id==='answerInput';
+  qi++;
+  renderQuestion();
+  if(!keepKeyboard){
+    document.querySelector('#view-quiz .panel').scrollIntoView({block:'start',behavior:'smooth'});
+  }
+  // renderQuestion focuses the replacement input synchronously; do not wait for
+  // a timer/requestAnimationFrame, which can make iPad Safari hide its keyboard.
+}
 $('nextQuestion').onclick=next;$('previousQuestion').onclick=()=>{if(qi>0){qi--;renderQuestion();}};$('quitQuiz').onclick=()=>{if(confirm('퀴즈를 종료할까요? 지금까지 답한 기록은 저장됩니다.'))showView('quizsetup');};
 function finishQuiz(){showView('results');const good=quizResults.filter(r=>r.correct).length;$('resultSummary').textContent=`${quizResults.length}문제 중 ${good}문제 정답 · 정답률 ${Math.round(good/Math.max(1,quizResults.length)*100)}%`;$('resultList').innerHTML=quizResults.map((r,i)=>`<div class="result-row"><div class="result-char">${r.entry.char}</div><div><strong>${i+1}. ${r.correct?'정답':'오답'}</strong><div class="muted">내 답: ${escapeHtml(r.raw)}</div><div>정답: ${r.matchCorrect?`${r.matchCorrect.char} — ${r.matchCorrect.mean} ${r.matchCorrect.sound}`:(quizMode==='mean'?r.entry.char:`${r.entry.mean} ${r.entry.sound}`)}</div><div class="muted">문제 한자: ${r.entry.char} · ${r.entry.mean} ${r.entry.sound}</div></div></div>`).join();$('redoWrong').disabled=!quizResults.some(r=>!r.correct);}
 $('startQuiz').onclick=()=>startQuiz();$('backSetup').onclick=()=>showView('quizsetup');$('redoWrong').onclick=()=>{const a=quizResults.filter(r=>!r.correct).map(r=>r.entry);if(a.length)startQuiz([...new Map(a.map(e=>[e.char,e])).values()]);};
@@ -125,7 +162,14 @@ populateSounds();buildRangeButtons();updateStats();renderList();$('soundSetting'
     document.documentElement.style.setProperty('--keyboard-bottom',Math.max(0,window.innerHeight-vv.height-vv.offsetTop)+'px');
   };
   if(window.visualViewport){window.visualViewport.addEventListener('resize',syncViewport);window.visualViewport.addEventListener('scroll',syncViewport);}
-  document.addEventListener('focusin',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)){setTimeout(syncViewport,80);setTimeout(()=>e.target.scrollIntoView({block:'nearest',behavior:'smooth'}),120);}});
+  document.addEventListener('focusin',e=>{
+    if(/INPUT|TEXTAREA/.test(e.target.tagName)){
+      syncViewport();
+      setTimeout(syncViewport,80);
+      // Avoid scrolling the input to the center after the iPad keyboard opens;
+      // that scroll often pushes the question itself out of view.
+    }
+  });
   document.addEventListener('focusout',()=>setTimeout(syncViewport,100));
   window.addEventListener('resize',syncViewport);syncViewport();
 })();
