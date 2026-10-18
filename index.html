@@ -21,22 +21,18 @@ button,.field,select{touch-action:manipulation}
 #view-quiz .answer-row{position:sticky;bottom:0;z-index:8;background:var(--paper);padding:8px 0 calc(8px + env(safe-area-inset-bottom));}
 #view-quiz .answer-row input{min-height:48px;font-size:17px}
 #view-quiz .feedback{scroll-margin-bottom:150px}
-body.keyboard-open #view-quiz .panel{padding:10px 12px}
-body.keyboard-open #view-quiz .progress{margin:4px 0 7px}
-body.keyboard-open #view-quiz .question{padding:0 0 5px}
-body.keyboard-open #view-quiz .q-char{font-size:clamp(46px,8vh,68px);margin:0;line-height:1.05}
-body.keyboard-open #view-quiz .q-prompt{font-size:18px;margin:3px 0}
-body.keyboard-open #view-quiz .q-label{font-size:11px}
-body.keyboard-open #view-quiz .answer-row{position:fixed;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));bottom:var(--keyboard-bottom,0px);padding:8px;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 -5px 20px #00000012}
+body.keyboard-open #view-quiz .panel{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));top:8px;bottom:calc(var(--keyboard-bottom,0px) + 8px);width:auto;max-height:none;overflow-y:auto;overscroll-behavior:contain;padding:10px 12px;margin:0;z-index:20}
+body.keyboard-open #view-quiz .progress{margin:5px 0 9px}
+body.keyboard-open #view-quiz .question{padding:2px 0 8px}
+body.keyboard-open #view-quiz .q-char{font-size:64px;margin:0;line-height:1.08}
+body.keyboard-open #view-quiz .q-prompt{font-size:20px;margin:5px 0;line-height:1.25}
+body.keyboard-open #view-quiz .q-label{font-size:12px}
+body.keyboard-open #view-quiz .answer-row{position:sticky;bottom:0;left:auto;right:auto;z-index:30;display:flex;gap:8px;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--paper);border:0;border-radius:0;box-shadow:none}
+body.keyboard-open #view-quiz .answer-row input{font-size:16px;min-height:46px;flex:1;min-width:0}
+body.keyboard-open #view-quiz .answer-row .btn{min-height:46px}
 body.keyboard-open #view-quiz .quiz-bottom{position:static;flex-wrap:wrap}
-body.keyboard-open #view-quiz .feedback{margin-bottom:70px}
-body.keyboard-open #view-quiz{scroll-margin-top:8px}
-body.keyboard-open #view-quiz .panel{max-height:calc(100dvh - var(--keyboard-bottom,0px) - env(safe-area-inset-top) - 8px);overflow-y:auto;overscroll-behavior:contain}
-body.keyboard-open #view-quiz .answer-row{z-index:9999}
-body.keyboard-open #view-quiz .answer-row input{font-size:16px;min-height:44px}
-@supports not (height: 100dvh){
-  body.keyboard-open #view-quiz .panel{max-height:calc(100vh - var(--keyboard-bottom,0px) - 8px)}
-}
+body.keyboard-open #view-quiz .feedback{margin-bottom:12px}
+@media(orientation:landscape){body.keyboard-open #view-quiz .q-char{font-size:48px}body.keyboard-open #view-quiz .q-prompt{font-size:18px}}
 @media(min-width:700px){.app{padding-left:22px;padding-right:22px}.top{align-items:center;flex-direction:row}.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}.list{grid-template-columns:repeat(auto-fill,minmax(112px,1fr))}}
 @media(orientation:landscape) and (max-height:600px){#view-quiz .q-char{font-size:64px}#view-quiz .question{padding:0 0 5px}#view-quiz .progress{margin:5px 0 8px}}
 
@@ -157,9 +153,14 @@ populateSounds();buildRangeButtons();updateStats();renderList();$('soundSetting'
   const syncViewport=()=>{
     const vv=window.visualViewport;
     if(!vv)return;
-    const keyboardLikely=(window.innerHeight-vv.height-vv.offsetTop)>140 && document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+    const active=document.activeElement;
+    const inputFocused=!!active && /INPUT|TEXTAREA/.test(active.tagName);
+    // Use viewport height reduction only. offsetTop fluctuates while iPad Safari
+    // scrolls the visual viewport, which previously made the layout jump.
+    const covered=Math.max(0,window.innerHeight-vv.height);
+    const keyboardLikely=inputFocused && covered>110;
     document.body.classList.toggle('keyboard-open',!!keyboardLikely);
-    document.documentElement.style.setProperty('--keyboard-bottom',Math.max(0,window.innerHeight-vv.height-vv.offsetTop)+'px');
+    document.documentElement.style.setProperty('--keyboard-bottom',covered+'px');
   };
   if(window.visualViewport){window.visualViewport.addEventListener('resize',syncViewport);window.visualViewport.addEventListener('scroll',syncViewport);}
   document.addEventListener('focusin',e=>{
