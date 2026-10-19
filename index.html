@@ -79,59 +79,6 @@ $('questionArea').innerHTML=html;
 if(quizMode!=='match'){const inp=$('answerInput');$('submitAnswer').onclick=submitAnswer;inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ev.stopPropagation();if(!answered){submitAnswer();requestAnimationFrame(()=>{const same=$('answerInput');if(same){try{same.focus({preventScroll:true})}catch(e){same.focus();}keepFeedbackVisible();}});}else{next();}}});try{inp.focus({preventScroll:true})}catch(e){inp.focus();}}
 else{$('questionArea').querySelectorAll('[data-option]').forEach(b=>b.onclick=()=>submitMatch(b.dataset.option));}
 $('progressBar').style.width=`${qi/quiz.length*100}%`;}
-
-function permutations(arr) {
-  if (arr.length <= 1) return [arr];
-  return arr.flatMap((item, i) =>
-    permutations(arr.filter((_, j) => j !== i))
-      .map(rest => [item, ...rest])
-  );
-}
-
-function isMeaningSoundCorrect(raw, e) {
-  const input = norm(raw).replace(/[\/,·]/g, '');
-  const means = e.mean.split('/').map(norm);
-  const sounds = e.sound.split('/').map(norm);
-
-  // 뜻과 음이 각각 하나인 한자는 기존 판정 방식을 유지
-  if (means.length === 1 && sounds.length === 1) {
-    return [
-      means[0] + sounds[0],
-      sounds[0] + means[0],
-      means[0],
-      sounds[0]
-    ].includes(input);
-  }
-
-  // 뜻과 음의 조합을 순서와 관계없이 허용
-  const meanOrders = permutations(means);
-  const soundOrders = permutations(sounds);
-  const accepted = new Set();
-
-  for (const ms of meanOrders) {
-    for (const ss of soundOrders) {
-      // 뜻과 음을 각각 붙여 쓰는 방식
-      accepted.add(ms.join('') + ss.join(''));
-      accepted.add(ss.join('') + ms.join(''));
-
-      // 각 뜻에 해당하는 음을 붙여 쓰는 방식
-      if (ms.length === ss.length) {
-        accepted.add(
-          ms.map((m, i) => m + ss[i]).join('')
-        );
-      }
-
-      // 뜻과 음을 번갈아 쓰는 순서도 허용
-      if (ss.every(s => s === ss[0])) {
-        accepted.add(ms.join('') + ss[0]);
-        accepted.add(ss[0] + ms.join(''));
-      }
-    }
-  }
-
-  return accepted.has(input);
-}
-
 function submitAnswer() {
   if (answered) return;
 
@@ -148,9 +95,80 @@ function submitAnswer() {
   if (quizMode === 'mean') {
     correct = norm(raw) === norm(e.char);
   } else {
-    correct = isMeaningSoundCorrect(raw, e);
+    const input = norm(raw).replace(/[\/,·]/g, '');
+    const means = e.mean.split('/').map(norm);
+    const sounds = e.sound.split('/').map(norm);
+
+    // 기존 단일 뜻·음 문제의 정답 인정 방식 유지
+    if (means.length === 1 && sounds.length === 1) {
+      const m = means[0];
+      const s = sounds[0];
+
+      correct = [
+        m + s,
+        s + m,
+        m,
+        s
+      ].some(answer => input === answer);
+    } else {
+      const accepted = new Set();
+
+      // 배열의 모든 순서를 생성
+      function getOrders(arr) {
+        if (arr.length <= 1) return [arr];
+
+        return arr.flatMap((item, i) =>
+          getOrders(arr.filter((_, j) => j !== i))
+            .map(rest => [item, ...rest])
+        );
+      }
+
+      const meanOrders = getOrders(means);
+      const soundOrders = getOrders(sounds);
+
+      for (const ms of meanOrders) {
+        for (const ss of soundOrders) {
+          // 뜻을 전부 쓴 뒤 음을 입력
+          accepted.add(ms.join('') + ss.join(''));
+
+          // 음을 전부 쓴 뒤 뜻을 입력
+          accepted.add(ss.join('') + ms.join(''));
+
+          // 뜻과 음을 각각 짝지어서 입력
+          if (ms.length === ss.length) {
+            accepted.add(
+              ms.map((m, i) => m + ss[i]).join('')
+            );
+
+            accepted.add(
+              ms.map((m, i) => ss[i] + m).join('')
+            );
+          }
+
+          // 음이 하나이고 뜻이 여러 개인 경우
+          if (ss.length === 1) {
+            accepted.add(
+              ms.map(m => m + ss[0]).join('')
+            );
+
+            accepted.add(
+              ms.map(m => ss[0] + m).join('')
+            );
+
+            accepted.add(ms.join('') + ss[0]);
+            accepted.add(ss[0] + ms.join(''));
+          }
+        }
+      }
+
+      correct = accepted.has(input);
+    }
   }
 
+  recordAnswer(e, raw, correct);
+  showFeedback(e, raw, correct);
+  $('nextQuestion').disabled = false;
+}
   recordAnswer(e, raw, correct);
   showFeedback(e, raw, correct);
   $('nextQuestion').disabled = false;
