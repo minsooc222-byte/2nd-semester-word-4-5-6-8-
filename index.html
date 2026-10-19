@@ -6,69 +6,11 @@
 .range-grid,.sound-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.range-btn{border:1px solid transparent;border-radius:12px;background:#e9edf4;color:#111827;padding:12px 5px;font-weight:750;min-height:44px}.range-btn.active,.sound-btn.active{background:#dce7ff;border:2px solid #7da0ff;color:#1454e8;padding:11px 4px}.sound-btn{border:1px solid transparent;border-radius:12px;background:#e9edf4;color:#111827;padding:12px 5px;font-weight:750;min-height:44px}.sound-actions{display:flex;gap:8px;margin-top:8px}.range-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.range-actions .btn{background:#e9edf4;border:0}.range-actions .btn:active{transform:scale(.99)}#rangeCount{margin-top:8px}@media(max-width:600px){.range-grid,.sound-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.range-btn,.sound-btn{padding:11px 3px}}
 @media(max-width:600px){.app{padding-left:11px;padding-right:11px}.panel{padding:14px;border-radius:17px}.top{align-items:flex-start;flex-direction:column}.grid2{grid-template-columns:1fr}.list{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}.hanja-item{min-height:82px}.detail{align-items:flex-start;flex-wrap:wrap}.detail .spacer{display:none}.options{gap:5px}.option{padding:15px 2px}.tabs{margin:0 -2px}.quiz-bottom .btn{flex:1}}@media(orientation:landscape) and (max-height:520px){.q-char{font-size:76px;margin:0}.question{padding:0 0 8px}.progress{margin:8px 0 10px}.panel{padding:12px}.tabs{padding-bottom:8px}}
 
-/* iPad layout: stable sizing and keyboard-aware viewport */
-html,body{min-height:100%;-webkit-text-size-adjust:100%}
-body{overscroll-behavior-y:contain}
-.app{width:100%;max-width:1100px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right));padding-bottom:calc(18px + env(safe-area-inset-bottom))}
-.tabs{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
-button,.field,select{touch-action:manipulation}
-#view-quiz .panel{min-height:0}
-#view-quiz .question{padding:8px 0 14px}
-#view-quiz .q-char{font-size:clamp(72px,10vw,112px);line-height:1.12;margin:5px 0}
-#view-quiz .q-prompt{font-size:clamp(20px,2.8vw,28px);line-height:1.3;margin:7px 0}
-#view-quiz .progress{margin:8px 0 14px}
-#view-quiz .answer-row{display:flex;gap:8px;width:100%;padding:8px 0;background:var(--paper)}
-#view-quiz .answer-row input{flex:1;min-width:0;width:0;font-size:18px;min-height:48px}
-#view-quiz .answer-row .btn{flex-shrink:0;min-height:48px}
-#view-quiz .quiz-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:10px;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--paper)}
-/* Use the actual visible viewport when iPad's software keyboard is open.
-   Font sizes intentionally do NOT change on keyboard resize. */
-body.keyboard-open #view-quiz .panel{
-  position:fixed;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));
-  top:0;height:var(--vv-height,100dvh);bottom:auto;width:auto;max-height:none;
-  display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain;
-  padding:12px 14px calc(8px + env(safe-area-inset-bottom));margin:0;z-index:20;
-}
-body.keyboard-open #view-quiz .quiz-head{flex:0 0 auto}
-body.keyboard-open #view-quiz .progress{flex:0 0 auto;margin:7px 0 10px}
-body.keyboard-open #view-quiz #questionArea{
-  flex:1 1 auto;min-height:0;min-width:0;display:flex;flex-direction:column;
-  overflow:hidden;overscroll-behavior:contain
-}
-body.keyboard-open #view-quiz #questionArea>.question{
-  flex:0 0 auto;display:block;visibility:visible;overflow:visible;
-  padding:8px 0 12px;margin:0
-}
-body.keyboard-open #view-quiz .q-char{font-size:clamp(64px,9vw,100px);line-height:1.08;margin:4px 0}
-body.keyboard-open #view-quiz .q-prompt{font-size:clamp(19px,2.5vw,26px);line-height:1.25;margin:6px 0}
-body.keyboard-open #view-quiz .answer-row{
-  position:relative;bottom:auto;z-index:3;flex:0 0 auto;width:100%;
-  padding:8px 0;background:var(--paper)
-}
-body.keyboard-open #view-quiz .answer-row input{font-size:18px;min-height:48px;display:block;visibility:visible}
-body.keyboard-open #view-quiz #questionArea>.feedback{
-  flex:1 1 auto;min-height:0;overflow-y:auto;margin:8px 0 4px
-}
-body.keyboard-open #view-quiz .quiz-bottom{flex:0 0 auto;margin-top:4px;padding:5px 0 0}
-body.keyboard-open #view-quiz .quiz-bottom #quitQuiz{display:none}
-body.keyboard-open #view-quiz .quiz-bottom .controls{width:100%;justify-content:flex-end}
-body.keyboard-open #view-quiz .panel>.quiz-head,
-body.keyboard-open #view-quiz .panel>.progress,
-body.keyboard-open #view-quiz .panel>#questionArea,
-body.keyboard-open #view-quiz .panel>.quiz-bottom{width:100%;min-width:0}
-@media(max-width:700px){
-  .app{padding-left:12px;padding-right:12px}
-  #view-quiz .panel{padding:14px}
-  #view-quiz .q-char,body.keyboard-open #view-quiz .q-char{font-size:clamp(68px,15vw,96px)}
-  #view-quiz .q-prompt,body.keyboard-open #view-quiz .q-prompt{font-size:clamp(19px,4vw,24px)}
-  #view-quiz .answer-row .btn{padding:10px 11px}
-}
-@media(orientation:landscape) and (max-height:600px){
-  #view-quiz .q-char,body.keyboard-open #view-quiz .q-char{font-size:clamp(56px,11vh,78px)}
-  #view-quiz .question{padding:2px 0 8px}
-  body.keyboard-open #view-quiz .panel{padding-top:7px}
-  body.keyboard-open #view-quiz .progress{margin:4px 0 6px}
-}
+/* iPad keyboard-safe layout */
+html,body{min-height:100%}#view-quiz,#view-quiz .panel,#questionArea{min-width:0}#questionArea .question{display:block;width:100%}#questionArea .q-label,#questionArea .q-prompt,#questionArea .q-char{overflow-wrap:anywhere}#questionArea .answer-row{width:100%;min-width:0;align-items:stretch}#questionArea .answer-row input{display:block;width:1%;flex:1 1 0;min-width:0;color:#20231f!important;background:#fff!important;-webkit-text-fill-color:#20231f;opacity:1}#questionArea .feedback{max-height:24vh;overflow:auto}
+@media(max-width:900px){.app{padding-left:12px;padding-right:12px}#view-quiz .panel{padding:clamp(10px,2.2vw,18px)}#view-quiz .progress{margin:8px 0 12px}#view-quiz .question{padding:4px 0 10px}#view-quiz .q-char{font-size:clamp(56px,12vw,100px);line-height:1.15;margin:4px 0}#view-quiz .q-prompt{font-size:clamp(19px,3.4vw,27px);margin:6px 0}#view-quiz .q-label{font-size:clamp(12px,1.8vw,15px)}#view-quiz .answer-row{gap:7px}#view-quiz .answer-row input,#view-quiz .answer-row .btn{min-height:48px}#view-quiz .quiz-bottom{margin-top:8px;padding-top:6px}}
+body.keyboard-open{overflow:hidden}body.keyboard-open #view-quiz:not(.hidden){position:fixed!important;left:0;right:0;top:env(safe-area-inset-top);bottom:env(safe-area-inset-bottom);z-index:100;overflow-y:auto;overscroll-behavior:contain;background:var(--bg);padding:0 10px 8px}body.keyboard-open #view-quiz:not(.hidden) .panel{width:100%;max-width:860px;margin:0 auto;border-radius:14px;box-shadow:none}body.keyboard-open #view-quiz:not(.hidden) #questionArea{display:flex;flex-direction:column;align-items:stretch;min-height:0}body.keyboard-open #view-quiz:not(.hidden) .question,body.keyboard-open #view-quiz:not(.hidden) .answer-row{flex:0 0 auto}body.keyboard-open #view-quiz:not(.hidden) .quiz-bottom{position:static;margin-top:8px}
+@media(max-height:520px){body.keyboard-open #view-quiz:not(.hidden) .panel{padding:8px}body.keyboard-open #view-quiz:not(.hidden) .q-char{font-size:clamp(48px,10vh,72px)}body.keyboard-open #view-quiz:not(.hidden) .q-prompt{font-size:18px;margin:3px 0}body.keyboard-open #view-quiz:not(.hidden) .question{padding:0 0 5px}body.keyboard-open #view-quiz:not(.hidden) .progress{margin:5px 0 8px}}
 </style></head><body><main class="app">
 <header class="top"><div><div class="brand">한자 <span>암기장</span></div><div class="sub">내 목록 400자 · 기기 안에 자동 저장</div></div><div class="stats"><span class="pill" id="statTotal">전체 400자</span><span class="pill" id="statFav">★ 즐겨찾기 0</span><span class="pill" id="statWrong">오답 기록 0</span></div></header>
 <nav class="tabs" id="tabs"><button class="tab active" data-view="list">한자 목록</button><button class="tab" data-view="quizsetup">퀴즈</button><button class="tab" data-view="favorites">즐겨찾기</button><button class="tab" data-view="wrong">오답 랭킹</button><button class="tab" data-view="backup">백업·설정</button></nav>
@@ -134,27 +76,7 @@ if(quizMode==='mean'){html=`<div class="question"><div class="q-label">이 뜻�
 else if(quizMode==='char'){html=`<div class="question"><div class="q-label">이 한자의 뜻과 음을 입력하세요</div><div class="q-char">${e.char}</div></div><div class="answer-row"><input class="field" id="answerInput" autocomplete="off" placeholder="예: 회복할 복" enterkeyhint="go"><button class="btn primary" id="submitAnswer">정답 확인</button></div>`;}
 else{const sound=$('soundGrid').querySelector('.sound-btn.active')?.dataset.sound||'';const samePool=DATA.filter(x=>x.char!==e.char&&x.sound.split('/').includes(sound));const otherPool=DATA.filter(x=>x.char!==e.char&&!x.sound.split('/').includes(sound));if(!samePool.length){quizMode='char';renderQuestion();return;}const correct=shuffle(samePool)[0];quiz[qi]._matchCorrect=correct;const opts=shuffle([correct,...shuffle(samePool.filter(x=>x.char!==correct.char)).slice(0,2),...shuffle(otherPool).slice(0,2)]);quiz[qi]._options=opts;html=`<div class="question"><div class="q-label">다음 한자와 같은 음인 다른 한자를 고르세요</div><div class="q-char">${e.char}</div></div><div class="options">${opts.map(x=>`<button class="option" data-option="${x.char}">${x.char}</button>`).join('')}</div><div id="feedback"></div>`;}
 $('questionArea').innerHTML=html;
-if(quizMode!=='match'){
-  const inp=$('answerInput');
-  $('submitAnswer').onclick=submitAnswer;
-  inp.addEventListener('keydown',ev=>{
-    if(ev.key==='Enter'&&!ev.isComposing&&ev.keyCode!==229){
-      ev.preventDefault();
-      ev.stopPropagation();
-      if(!answered){submitAnswer();}
-      else{next();}
-      // Keep focus on the newly-rendered answer input during the same Enter gesture.
-      const current=$('answerInput');
-      if(current){try{current.focus({preventScroll:true});}catch(e){current.focus();}}
-    }
-  });
-  // Focus synchronously after rendering so iPad Safari is less likely to dismiss
-  // the software keyboard when the previous input is replaced.
-  try{
-    inp.focus({preventScroll:true});
-    if(typeof inp.setSelectionRange==='function')inp.setSelectionRange(inp.value.length,inp.value.length);
-  }catch(e){}
-}
+if(quizMode!=='match'){const inp=$('answerInput');$('submitAnswer').onclick=submitAnswer;inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ev.stopPropagation();if(!answered)submitAnswer();else next();}});try{inp.focus({preventScroll:true})}catch(e){inp.focus();}}
 else{$('questionArea').querySelectorAll('[data-option]').forEach(b=>b.onclick=()=>submitMatch(b.dataset.option));}
 $('progressBar').style.width=`${qi/quiz.length*100}%`;}
 function submitAnswer(){if(answered)return;const e=quiz[qi],raw=$('answerInput').value.trim();if(!raw){$('answerInput').focus();return;}let correct=false;if(quizMode==='mean')correct=norm(raw)===norm(e.char);else correct=norm(raw)===norm(`${e.mean} ${e.sound}`)||norm(raw)===norm(`${e.sound} ${e.mean}`)||norm(raw)===norm(e.mean)||norm(raw)===norm(e.sound);recordAnswer(e,raw,correct);showFeedback(e,raw,correct);$('nextQuestion').disabled=false;}
@@ -162,17 +84,7 @@ function submitMatch(c){if(answered)return;const e=quiz[qi],correct=quiz[qi]._ma
 function recordAnswer(e,raw,correct,matchCorrect=null){answered=true;state.totalAnswered++;if(correct)state.totalCorrect++;else state.wrong[e.char]=(state.wrong[e.char]||0)+1;state.correct[e.char]=(state.correct[e.char]||0)+(correct?1:0);save();quizResults.push({entry:e,raw,correct,matchCorrect});}
 function showFeedback(e,raw,correct){const box=document.createElement('div');box.className='feedback '+(correct?'':'bad');const right=quizMode==='mean'?e.char:`${e.mean} ${e.sound}`;box.innerHTML=`<strong>${correct?'정답입니다!':'오답입니다.'}</strong><div>내 답: <b>${escapeHtml(raw)}</b></div><div>정답: <b>${right}</b></div><div class="muted" style="margin-top:4px">${e.char} · ${e.mean} · 음 ${e.sound}</div>`;$('questionArea').appendChild(box);}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function next(){
-  if(!answered&&qi>=quizResults.length)return;
-  const keepKeyboard=document.body.classList.contains('keyboard-open')||document.activeElement?.id==='answerInput';
-  qi++;
-  renderQuestion();
-  if(!keepKeyboard){
-    document.querySelector('#view-quiz .panel').scrollIntoView({block:'start',behavior:'smooth'});
-  }
-  // renderQuestion focuses the replacement input synchronously; do not wait for
-  // a timer/requestAnimationFrame, which can make iPad Safari hide its keyboard.
-}
+function next(){if(!answered&&qi>=quizResults.length)return;const keepFocus=document.activeElement&&document.activeElement.id==='answerInput';qi++;renderQuestion();if(keepFocus){const n=$('answerInput');if(n){try{n.focus({preventScroll:true})}catch(e){n.focus();}}}}
 $('nextQuestion').onclick=next;$('previousQuestion').onclick=()=>{if(qi>0){qi--;renderQuestion();}};$('quitQuiz').onclick=()=>{if(confirm('퀴즈를 종료할까요? 지금까지 답한 기록은 저장됩니다.'))showView('quizsetup');};
 function finishQuiz(){showView('results');const good=quizResults.filter(r=>r.correct).length;$('resultSummary').textContent=`${quizResults.length}문제 중 ${good}문제 정답 · 정답률 ${Math.round(good/Math.max(1,quizResults.length)*100)}%`;$('resultList').innerHTML=quizResults.map((r,i)=>`<div class="result-row"><div class="result-char">${r.entry.char}</div><div><strong>${i+1}. ${r.correct?'정답':'오답'}</strong><div class="muted">내 답: ${escapeHtml(r.raw)}</div><div>정답: ${r.matchCorrect?`${r.matchCorrect.char} — ${r.matchCorrect.mean} ${r.matchCorrect.sound}`:(quizMode==='mean'?r.entry.char:`${r.entry.mean} ${r.entry.sound}`)}</div><div class="muted">문제 한자: ${r.entry.char} · ${r.entry.mean} ${r.entry.sound}</div></div></div>`).join();$('redoWrong').disabled=!quizResults.some(r=>!r.correct);}
 $('startQuiz').onclick=()=>startQuiz();$('backSetup').onclick=()=>showView('quizsetup');$('redoWrong').onclick=()=>{const a=quizResults.filter(r=>!r.correct).map(r=>r.entry);if(a.length)startQuiz([...new Map(a.map(e=>[e.char,e])).values()]);};
@@ -181,41 +93,5 @@ $('importFile').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{
 $('resetBtn').onclick=()=>{if(confirm('즐겨찾기와 모든 오답·정답 통계를 초기화할까요? 이 작업은 되돌릴 수 없습니다.')){state={favorites:[],wrong:{},correct:{},totalAnswered:0,totalCorrect:0};save();renderList();renderFavorites();renderWrong();$('backupMsg').textContent='학습 기록을 초기화했습니다.';}};
 populateSounds();buildRangeButtons();updateStats();renderList();$('soundSetting').classList.add('hidden');$('matchNotice').classList.add('hidden');$('rangeSetting').classList.add('hidden');
 
-// Keep the quiz fitted to the actual visible iPad viewport while the software keyboard is open.
-(function(){
-  const root=document.documentElement;
-  let lastKeyboardState=false;
-  const syncViewport=()=>{
-    const vv=window.visualViewport;
-    if(!vv)return;
-    const active=document.activeElement;
-    const inputFocused=!!active && /INPUT|TEXTAREA/.test(active.tagName);
-    const layoutHeight=window.innerHeight || root.clientHeight;
-    const reduced=layoutHeight-vv.height;
-    const keyboardLikely=inputFocused && reduced>100;
-    // Only toggle layout when keyboard state truly changes; viewport scrolling
-    // updates position/height without changing question font sizes.
-    if(keyboardLikely!==lastKeyboardState){
-      document.body.classList.toggle('keyboard-open',keyboardLikely);
-      lastKeyboardState=keyboardLikely;
-    }
-    root.style.setProperty('--vv-height',Math.max(180,vv.height)+'px');
-    root.style.setProperty('--vv-top','0px');
-  };
-  if(window.visualViewport){
-    window.visualViewport.addEventListener('resize',syncViewport,{passive:true});
-    window.visualViewport.addEventListener('scroll',syncViewport,{passive:true});
-  }
-  document.addEventListener('focusin',e=>{
-    if(/INPUT|TEXTAREA/.test(e.target.tagName)){
-      syncViewport();
-      // A second measurement catches Safari's post-focus viewport adjustment.
-      requestAnimationFrame(syncViewport);
-    }
-  });
-  document.addEventListener('focusout',()=>setTimeout(syncViewport,120));
-  window.addEventListener('resize',syncViewport,{passive:true});
-  syncViewport();
-})();
-
+(function(){function update(){const vv=window.visualViewport;const a=document.activeElement;const active=a&&a.id==='answerInput';const open=!!(active&&vv&&(window.innerHeight-vv.height>90));document.body.classList.toggle('keyboard-open',open)}document.addEventListener('focusin',e=>{if(e.target&&e.target.id==='answerInput')update()});document.addEventListener('focusout',e=>{if(e.target&&e.target.id==='answerInput')requestAnimationFrame(update)});if(window.visualViewport){visualViewport.addEventListener('resize',update);visualViewport.addEventListener('scroll',update)}window.addEventListener('resize',update);const oldShowView=window.showView;if(typeof oldShowView==='function')window.showView=function(v){oldShowView(v);if(v!=='quiz')document.body.classList.remove('keyboard-open');requestAnimationFrame(update)};requestAnimationFrame(update)})();
 </script></body></html>
