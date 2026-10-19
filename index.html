@@ -79,33 +79,7 @@ $('questionArea').innerHTML=html;
 if(quizMode!=='match'){const inp=$('answerInput');$('submitAnswer').onclick=submitAnswer;inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ev.stopPropagation();if(!answered){submitAnswer();requestAnimationFrame(()=>{const same=$('answerInput');if(same){try{same.focus({preventScroll:true})}catch(e){same.focus();}keepFeedbackVisible();}});}else{next();}}});try{inp.focus({preventScroll:true})}catch(e){inp.focus();}}
 else{$('questionArea').querySelectorAll('[data-option]').forEach(b=>b.onclick=()=>submitMatch(b.dataset.option));}
 $('progressBar').style.width=`${qi/quiz.length*100}%`;}
-function submitAnswer(){
-if(answered)return;
-const e=quiz[qi],raw=$('answerInput').value.trim();
-if(!raw){$('answerInput').focus();return;}
-let correct=false;
-if(quizMode==='mean'){
-  correct=norm(raw)===norm(e.char);
-}else{
-  const clean=s=>norm(s).replace(/[·,，/\-]/g,'');
-  const typed=clean(raw);
-  const meanings=String(e.mean).split('/').map(clean);
-  const sounds=String(e.sound).split('/').map(clean);
-  const accepted=new Set([
-    clean(e.mean+e.sound),clean(e.sound+e.mean),clean(e.mean),clean(e.sound)
-  ]);
-  for(const m of meanings)for(const so of sounds){
-    accepted.add(clean(m+so));
-    accepted.add(clean(so+m));
-  }
-  // 復의 두 뜻을 각각 입력하는 사용 형식도 정답으로 인정
-  if(e.char==='復'&&typed==='회복할복다시부')correct=true;
-  else correct=accepted.has(typed);
-}
-recordAnswer(e,raw,correct);
-showFeedback(e,raw,correct);
-$('nextQuestion').disabled=false;
-}
+function submitAnswer(){if(answered)return;const e=quiz[qi],raw=$('answerInput').value.trim();if(!raw){$('answerInput').focus();return;}let correct=false;if(quizMode==='mean')correct=norm(raw)===norm(e.char);else correct=norm(raw)===norm(`${e.mean} ${e.sound}`)||norm(raw)===norm(`${e.sound} ${e.mean}`)||norm(raw)===norm(e.mean)||norm(raw)===norm(e.sound);recordAnswer(e,raw,correct);showFeedback(e,raw,correct);$('nextQuestion').disabled=false;}
 function submitMatch(c){if(answered)return;const e=quiz[qi],correct=quiz[qi]._matchCorrect,ok=c===correct.char;document.querySelectorAll('[data-option]').forEach(b=>{b.disabled=true;if(b.dataset.option===correct.char)b.classList.add('correct');if(b.dataset.option===c&&!ok)b.classList.add('incorrect');});recordAnswer(e,c,ok,correct.char);$('feedback').innerHTML=`<div class="feedback ${ok?'':'bad'}"><strong>${ok?'정답입니다!':'오답입니다.'}</strong><div>정답: <b style="font-size:24px">${correct.char}</b> — ${correct.mean} ${correct.sound}</div><div>문제 한자: ${e.char} — ${e.mean} ${e.sound}</div></div>`;$('nextQuestion').disabled=false;}
 function recordAnswer(e,raw,correct,matchCorrect=null){answered=true;state.totalAnswered++;if(correct)state.totalCorrect++;else state.wrong[e.char]=(state.wrong[e.char]||0)+1;state.correct[e.char]=(state.correct[e.char]||0)+(correct?1:0);save();quizResults.push({entry:e,raw,correct,matchCorrect});}
 function keepFeedbackVisible(){const view=$('view-quiz');const feedback=$('questionArea').querySelector('.feedback');const vv=window.visualViewport;if(!view||!feedback)return;const visibleHeight=vv?vv.height:window.innerHeight;const rect=feedback.getBoundingClientRect();if(rect.bottom>visibleHeight-12){view.scrollTop+=rect.bottom-visibleHeight+24;}else if(rect.top<8){view.scrollTop-=8-rect.top;} }
