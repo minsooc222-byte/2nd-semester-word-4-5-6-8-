@@ -79,60 +79,7 @@ $('questionArea').innerHTML=html;
 if(quizMode!=='match'){const inp=$('answerInput');$('submitAnswer').onclick=submitAnswer;inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ev.stopPropagation();if(!answered){submitAnswer();requestAnimationFrame(()=>{const same=$('answerInput');if(same){try{same.focus({preventScroll:true})}catch(e){same.focus();}keepFeedbackVisible();}});}else{next();}}});try{inp.focus({preventScroll:true})}catch(e){inp.focus();}}
 else{$('questionArea').querySelectorAll('[data-option]').forEach(b=>b.onclick=()=>submitMatch(b.dataset.option));}
 $('progressBar').style.width=`${qi/quiz.length*100}%`;}
-function submitAnswer(){
-if(answered)return;
-const e=quiz[qi],raw=$('answerInput').value.trim();
-if(!raw){$('answerInput').focus();return;}
-let correct=false;
-if(quizMode==='mean'){
-  correct=norm(raw)===norm(e.char);
-}else{
-  const input=norm(raw).replace(/[\/ ,·]/g,'');
-  const means=e.mean.split('/').map(norm).filter(Boolean);
-  const sounds=e.sound.split('/').map(norm).filter(Boolean);
-  const accepted=new Set();
-  const orders=arr=>{
-    if(arr.length<=1)return [arr];
-    return arr.flatMap((v,i)=>orders(arr.filter((_,j)=>j!==i)).map(rest=>[v,...rest]));
-  };
-
-  if(means.length===1&&sounds.length===1){
-    const m=means[0],s=sounds[0];
-    [m+s,s+m,m,s].forEach(v=>accepted.add(v));
-  }else{
-    const meanOrders=orders(means);
-    const soundOrders=orders(sounds);
-
-    // 뜻과 음의 짝을 유지한 채 순서를 바꿔 입력하는 방식
-    if(means.length===sounds.length){
-      const pairs=means.map((m,i)=>[m,sounds[i]]);
-      for(const ps of orders(pairs)){
-        accepted.add(ps.map(([m,s])=>m+s).join(''));
-        accepted.add(ps.map(([m,s])=>s+m).join(''));
-      }
-    }
-
-    // 모든 뜻을 먼저 쓰고 음을 한 번 또는 모두 쓰는 방식
-    for(const ms of meanOrders){
-      for(const ss of soundOrders){
-        accepted.add(ms.join('')+ss.join(''));
-        accepted.add(ss.join('')+ms.join(''));
-        // 음이 하나인 경우: 뜻마다 음을 붙이거나, 뜻을 모아 쓴 뒤 음을 한 번 씀
-        if(ss.length===1){
-          accepted.add(ms.map(m=>m+ss[0]).join(''));
-          accepted.add(ms.map(m=>ss[0]+m).join(''));
-          accepted.add(ms.join('')+ss[0]);
-          accepted.add(ss[0]+ms.join(''));
-        }
-      }
-    }
-  }
-  correct=accepted.has(input);
-}
-recordAnswer(e,raw,correct);
-showFeedback(e,raw,correct);
-$('nextQuestion').disabled=false;
-}
+function submitAnswer(){if(answered)return;const e=quiz[qi],raw=$('answerInput').value.trim();if(!raw){$('answerInput').focus();return;}let correct=false;if(quizMode==='mean')correct=norm(raw)===norm(e.char);else{const clean=v=>norm(v).replace(/[\\s\\/·,、，]+/g,'');const input=clean(raw);const means=String(e.mean||'').split(/[\\/·、，,]/).map(clean).filter(Boolean);const sounds=String(e.sound||'').split(/[\\/·、，,]/).map(clean).filter(Boolean);const accepted=new Set();const permutations=a=>a.length<2?[a]:a.flatMap((v,i)=>permutations(a.filter((_,j)=>j!==i)).map(rest=>[v,...rest]));if(means.length===1&&sounds.length===1){[means[0]+sounds[0],sounds[0]+means[0],means[0],sounds[0]].forEach(x=>accepted.add(x));}else{for(const ms of permutations(means)){for(const ss of permutations(sounds)){accepted.add(ms.join('')+ss.join(''));accepted.add(ss.join('')+ms.join(''));if(sounds.length===1){accepted.add(ms.map(m=>m+ss[0]).join(''));accepted.add(ms.map(m=>ss[0]+m).join(''));}}}if(means.length===sounds.length){const pairs=means.map((m,i)=>[m,sounds[i]]);for(const ps of permutations(pairs)){accepted.add(ps.map(([m,s])=>m+s).join(''));accepted.add(ps.map(([m,s])=>s+m).join(''));}}}correct=accepted.has(input);}recordAnswer(e,raw,correct);showFeedback(e,raw,correct);$('nextQuestion').disabled=false;}
 function submitMatch(c){if(answered)return;const e=quiz[qi],correct=quiz[qi]._matchCorrect,ok=c===correct.char;document.querySelectorAll('[data-option]').forEach(b=>{b.disabled=true;if(b.dataset.option===correct.char)b.classList.add('correct');if(b.dataset.option===c&&!ok)b.classList.add('incorrect');});recordAnswer(e,c,ok,correct.char);$('feedback').innerHTML=`<div class="feedback ${ok?'':'bad'}"><strong>${ok?'정답입니다!':'오답입니다.'}</strong><div>정답: <b style="font-size:24px">${correct.char}</b> — ${correct.mean} ${correct.sound}</div><div>문제 한자: ${e.char} — ${e.mean} ${e.sound}</div></div>`;$('nextQuestion').disabled=false;}
 function recordAnswer(e,raw,correct,matchCorrect=null){answered=true;state.totalAnswered++;if(correct)state.totalCorrect++;else state.wrong[e.char]=(state.wrong[e.char]||0)+1;state.correct[e.char]=(state.correct[e.char]||0)+(correct?1:0);save();quizResults.push({entry:e,raw,correct,matchCorrect});}
 function keepFeedbackVisible(){const view=$('view-quiz');const feedback=$('questionArea').querySelector('.feedback');const vv=window.visualViewport;if(!view||!feedback)return;const visibleHeight=vv?vv.height:window.innerHeight;const rect=feedback.getBoundingClientRect();if(rect.bottom>visibleHeight-12){view.scrollTop+=rect.bottom-visibleHeight+24;}else if(rect.top<8){view.scrollTop-=8-rect.top;} }
