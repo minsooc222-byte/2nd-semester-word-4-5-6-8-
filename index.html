@@ -79,7 +79,83 @@ $('questionArea').innerHTML=html;
 if(quizMode!=='match'){const inp=$('answerInput');$('submitAnswer').onclick=submitAnswer;inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ev.stopPropagation();if(!answered){submitAnswer();requestAnimationFrame(()=>{const same=$('answerInput');if(same){try{same.focus({preventScroll:true})}catch(e){same.focus();}keepFeedbackVisible();}});}else{next();}}});try{inp.focus({preventScroll:true})}catch(e){inp.focus();}}
 else{$('questionArea').querySelectorAll('[data-option]').forEach(b=>b.onclick=()=>submitMatch(b.dataset.option));}
 $('progressBar').style.width=`${qi/quiz.length*100}%`;}
-function submitAnswer(){if(answered)return;const e=quiz[qi],raw=$('answerInput').value.trim();if(!raw){$('answerInput').focus();return;}let correct=false;if(quizMode==='mean')correct=norm(raw)===norm(e.char);else correct=norm(raw)===norm(`${e.mean} ${e.sound}`)||norm(raw)===norm(`${e.sound} ${e.mean}`)||norm(raw)===norm(e.mean)||norm(raw)===norm(e.sound);recordAnswer(e,raw,correct);showFeedback(e,raw,correct);$('nextQuestion').disabled=false;}
+
+function permutations(arr) {
+  if (arr.length <= 1) return [arr];
+  return arr.flatMap((item, i) =>
+    permutations(arr.filter((_, j) => j !== i))
+      .map(rest => [item, ...rest])
+  );
+}
+
+function isMeaningSoundCorrect(raw, e) {
+  const input = norm(raw).replace(/[\/,·]/g, '');
+  const means = e.mean.split('/').map(norm);
+  const sounds = e.sound.split('/').map(norm);
+
+  // 뜻과 음이 각각 하나인 한자는 기존 판정 방식을 유지
+  if (means.length === 1 && sounds.length === 1) {
+    return [
+      means[0] + sounds[0],
+      sounds[0] + means[0],
+      means[0],
+      sounds[0]
+    ].includes(input);
+  }
+
+  // 뜻과 음의 조합을 순서와 관계없이 허용
+  const meanOrders = permutations(means);
+  const soundOrders = permutations(sounds);
+  const accepted = new Set();
+
+  for (const ms of meanOrders) {
+    for (const ss of soundOrders) {
+      // 뜻과 음을 각각 붙여 쓰는 방식
+      accepted.add(ms.join('') + ss.join(''));
+      accepted.add(ss.join('') + ms.join(''));
+
+      // 각 뜻에 해당하는 음을 붙여 쓰는 방식
+      if (ms.length === ss.length) {
+        accepted.add(
+          ms.map((m, i) => m + ss[i]).join('')
+        );
+      }
+
+      // 뜻과 음을 번갈아 쓰는 순서도 허용
+      if (ss.every(s => s === ss[0])) {
+        accepted.add(ms.join('') + ss[0]);
+        accepted.add(ss[0] + ms.join(''));
+      }
+    }
+  }
+
+  return accepted.has(input);
+}
+
+function submitAnswer() {
+  if (answered) return;
+
+  const e = quiz[qi];
+  const raw = $('answerInput').value.trim();
+
+  if (!raw) {
+    $('answerInput').focus();
+    return;
+  }
+
+  let correct = false;
+
+  if (quizMode === 'mean') {
+    correct = norm(raw) === norm(e.char);
+  } else {
+    correct = isMeaningSoundCorrect(raw, e);
+  }
+
+  recordAnswer(e, raw, correct);
+  showFeedback(e, raw, correct);
+  $('nextQuestion').disabled = false;
+}
+
 function submitMatch(c){if(answered)return;const e=quiz[qi],correct=quiz[qi]._matchCorrect,ok=c===correct.char;document.querySelectorAll('[data-option]').forEach(b=>{b.disabled=true;if(b.dataset.option===correct.char)b.classList.add('correct');if(b.dataset.option===c&&!ok)b.classList.add('incorrect');});recordAnswer(e,c,ok,correct.char);$('feedback').innerHTML=`<div class="feedback ${ok?'':'bad'}"><strong>${ok?'정답입니다!':'오답입니다.'}</strong><div>정답: <b style="font-size:24px">${correct.char}</b> — ${correct.mean} ${correct.sound}</div><div>문제 한자: ${e.char} — ${e.mean} ${e.sound}</div></div>`;$('nextQuestion').disabled=false;}
 function recordAnswer(e,raw,correct,matchCorrect=null){answered=true;state.totalAnswered++;if(correct)state.totalCorrect++;else state.wrong[e.char]=(state.wrong[e.char]||0)+1;state.correct[e.char]=(state.correct[e.char]||0)+(correct?1:0);save();quizResults.push({entry:e,raw,correct,matchCorrect});}
 function keepFeedbackVisible(){const view=$('view-quiz');const feedback=$('questionArea').querySelector('.feedback');const vv=window.visualViewport;if(!view||!feedback)return;const visibleHeight=vv?vv.height:window.innerHeight;const rect=feedback.getBoundingClientRect();if(rect.bottom>visibleHeight-12){view.scrollTop+=rect.bottom-visibleHeight+24;}else if(rect.top<8){view.scrollTop-=8-rect.top;} }
