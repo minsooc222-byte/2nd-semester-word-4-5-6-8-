@@ -79,7 +79,32 @@ $('questionArea').innerHTML=html;
 if(quizMode!=='match'){const inp=$('answerInput');$('submitAnswer').onclick=submitAnswer;inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ev.stopPropagation();if(!answered){submitAnswer();requestAnimationFrame(()=>{const same=$('answerInput');if(same){try{same.focus({preventScroll:true})}catch(e){same.focus();}keepFeedbackVisible();}});}else{next();}}});try{inp.focus({preventScroll:true})}catch(e){inp.focus();}}
 else{$('questionArea').querySelectorAll('[data-option]').forEach(b=>b.onclick=()=>submitMatch(b.dataset.option));}
 $('progressBar').style.width=`${qi/quiz.length*100}%`;}
-function submitAnswer(){if(answered)return;const e=quiz[qi],raw=$('answerInput').value.trim();if(!raw){$('answerInput').focus();return;}let correct=false;if(quizMode==='mean')correct=norm(raw)===norm(e.char);else correct=norm(raw)===norm(`${e.mean} ${e.sound}`)||norm(raw)===norm(`${e.sound} ${e.mean}`)||norm(raw)===norm(e.mean)||norm(raw)===norm(e.sound);recordAnswer(e,raw,correct);showFeedback(e,raw,correct);$('nextQuestion').disabled=false;}
+function answerMatches(raw,e){
+  const clean=s=>norm(s).replace(/[\\s·ㆍ,，、/／|+＋-]/g,'').toLowerCase();
+  const answer=clean(raw);
+  const meanings=e.mean.split('/');
+  const sounds=e.sound.split('/');
+  const candidates=new Set([
+    e.mean,e.sound,`${e.mean} ${e.sound}`,`${e.sound} ${e.mean}`
+  ].map(clean));
+  // 뜻과 음이 여러 개일 때 각 항목을 어떤 순서로 붙여 써도 인정
+  const parts=[...meanings,...sounds].filter(Boolean);
+  if(parts.length<=8){
+    const used=Array(parts.length).fill(false);
+    function permute(prefix){
+      if(prefix.length===parts.length){candidates.add(clean(prefix.join('')));return;}
+      for(let i=0;i<parts.length;i++){
+        if(used[i])continue;
+        // 같은 문자열 항목이 중복될 때 중복 순열 생성을 줄임
+        if(i>0&&parts[i]===parts[i-1]&&!used[i-1])continue;
+        used[i]=true;prefix.push(parts[i]);permute(prefix);prefix.pop();used[i]=false;
+      }
+    }
+    permute([]);
+  }
+  return candidates.has(answer);
+}
+function submitAnswer(){if(answered)return;const e=quiz[qi],raw=$('answerInput').value.trim();if(!raw){$('answerInput').focus();return;}let correct=false;if(quizMode==='mean')correct=norm(raw)===norm(e.char);else correct=answerMatches(raw,e);recordAnswer(e,raw,correct);showFeedback(e,raw,correct);$('nextQuestion').disabled=false;}
 function submitMatch(c){if(answered)return;const e=quiz[qi],correct=quiz[qi]._matchCorrect,ok=c===correct.char;document.querySelectorAll('[data-option]').forEach(b=>{b.disabled=true;if(b.dataset.option===correct.char)b.classList.add('correct');if(b.dataset.option===c&&!ok)b.classList.add('incorrect');});recordAnswer(e,c,ok,correct.char);$('feedback').innerHTML=`<div class="feedback ${ok?'':'bad'}"><strong>${ok?'정답입니다!':'오답입니다.'}</strong><div>정답: <b style="font-size:24px">${correct.char}</b> — ${correct.mean} ${correct.sound}</div><div>문제 한자: ${e.char} — ${e.mean} ${e.sound}</div></div>`;$('nextQuestion').disabled=false;}
 function recordAnswer(e,raw,correct,matchCorrect=null){answered=true;state.totalAnswered++;if(correct)state.totalCorrect++;else state.wrong[e.char]=(state.wrong[e.char]||0)+1;state.correct[e.char]=(state.correct[e.char]||0)+(correct?1:0);save();quizResults.push({entry:e,raw,correct,matchCorrect});}
 function keepFeedbackVisible(){const view=$('view-quiz');const feedback=$('questionArea').querySelector('.feedback');const vv=window.visualViewport;if(!view||!feedback)return;const visibleHeight=vv?vv.height:window.innerHeight;const rect=feedback.getBoundingClientRect();if(rect.bottom>visibleHeight-12){view.scrollTop+=rect.bottom-visibleHeight+24;}else if(rect.top<8){view.scrollTop-=8-rect.top;} }
