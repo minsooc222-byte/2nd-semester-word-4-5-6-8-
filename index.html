@@ -11,6 +11,23 @@ html,body{min-height:100%}#view-quiz,#view-quiz .panel,#questionArea{min-width:0
 @media(max-width:900px){.app{padding-left:12px;padding-right:12px}#view-quiz .panel{padding:clamp(10px,2.2vw,18px)}#view-quiz .progress{margin:8px 0 12px}#view-quiz .question{padding:4px 0 10px}#view-quiz .q-char{font-size:clamp(56px,12vw,100px);line-height:1.15;margin:4px 0}#view-quiz .q-prompt{font-size:clamp(19px,3.4vw,27px);margin:6px 0}#view-quiz .q-label{font-size:clamp(12px,1.8vw,15px)}#view-quiz .answer-row{gap:7px}#view-quiz .answer-row input,#view-quiz .answer-row .btn{min-height:48px}#view-quiz .quiz-bottom{margin-top:8px;padding-top:6px}}
 body.keyboard-open{overflow:hidden}body.keyboard-open #view-quiz:not(.hidden){position:fixed!important;left:0;right:0;top:var(--vv-top, 0px);height:var(--vv-height, 100dvh);bottom:auto;box-sizing:border-box;z-index:100;overflow-y:auto;overscroll-behavior:contain;background:var(--bg);padding:0 10px 8px}body.keyboard-open #view-quiz:not(.hidden) .panel{width:100%;max-width:860px;margin:0 auto;border-radius:14px;box-shadow:none}body.keyboard-open #view-quiz:not(.hidden) #questionArea{display:flex;flex-direction:column;align-items:stretch;min-height:0}body.keyboard-open #view-quiz:not(.hidden) .question,body.keyboard-open #view-quiz:not(.hidden) .answer-row{flex:0 0 auto}body.keyboard-open #view-quiz:not(.hidden) .quiz-bottom{position:static;margin-top:8px}#questionArea .feedback{scroll-margin:12px}#questionArea .answer-row input{color:#20231f!important;background:#fff!important;-webkit-text-fill-color:#20231f!important;opacity:1!important;min-width:0}#questionArea .answer-row{min-width:0}body.keyboard-open #view-quiz:not(.hidden) .panel{padding:clamp(8px,1.8vw,16px)}body.keyboard-open #view-quiz:not(.hidden) .feedback{max-height:none;overflow:visible}
 @media(max-height:520px){body.keyboard-open #view-quiz:not(.hidden) .panel{padding:8px}body.keyboard-open #view-quiz:not(.hidden) .q-char{font-size:clamp(48px,10vh,72px)}body.keyboard-open #view-quiz:not(.hidden) .q-prompt{font-size:18px;margin:3px 0}body.keyboard-open #view-quiz:not(.hidden) .question{padding:0 0 5px}body.keyboard-open #view-quiz:not(.hidden) .progress{margin:5px 0 8px}}
+
+/* iPad keyboard layout correction */
+#view-quiz:not(.hidden){position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;height:auto!important;min-height:0!important;overflow:visible!important;z-index:auto!important;padding:0 10px 12px!important;}
+#view-quiz:not(.hidden) .panel{margin:0 auto!important;padding:clamp(8px,1.5vw,14px)!important;}
+#view-quiz:not(.hidden) .q-char{font-size:clamp(44px,8vh,76px)!important;line-height:1.05!important;margin:2px 0!important;}
+#view-quiz:not(.hidden) .question{padding:2px 0 6px!important;}
+#view-quiz:not(.hidden) .progress{margin:5px 0 7px!important;}
+#view-quiz:not(.hidden) .quiz-bottom{margin-top:6px!important;padding-top:4px!important;}
+body.keyboard-open{overflow:hidden!important;}
+body.keyboard-open #view-quiz:not(.hidden){position:fixed!important;left:0!important;right:0!important;top:0!important;height:var(--vv-height,100dvh)!important;max-height:var(--vv-height,100dvh)!important;bottom:auto!important;box-sizing:border-box!important;z-index:100!important;overflow-y:auto!important;overscroll-behavior:contain!important;background:var(--bg)!important;padding:4px 10px 8px!important;}
+body.keyboard-open #view-quiz:not(.hidden) .panel{padding:6px!important;}
+body.keyboard-open #view-quiz:not(.hidden) .q-char{font-size:clamp(38px,7vh,60px)!important;line-height:1!important;margin:0!important;}
+body.keyboard-open #view-quiz:not(.hidden) .q-prompt{font-size:clamp(16px,2.6vh,20px)!important;margin:2px 0!important;}
+body.keyboard-open #view-quiz:not(.hidden) .q-label{font-size:12px!important;}
+body.keyboard-open #view-quiz:not(.hidden) .answer-row input,body.keyboard-open #view-quiz:not(.hidden) .answer-row .btn{min-height:42px!important;}
+body.keyboard-open #view-quiz:not(.hidden) .quiz-bottom .btn{min-height:36px!important;padding:7px 10px!important;}
+
 </style></head><body><main class="app">
 <header class="top"><div><div class="brand">한자 <span>암기장</span></div><div class="sub">내 목록 400자 · 기기 안에 자동 저장</div></div><div class="stats"><span class="pill" id="statTotal">전체 400자</span><span class="pill" id="statFav">★ 즐겨찾기 0</span><span class="pill" id="statWrong">오답 기록 0</span></div></header>
 <nav class="tabs" id="tabs"><button class="tab active" data-view="list">한자 목록</button><button class="tab" data-view="quizsetup">퀴즈</button><button class="tab" data-view="favorites">즐겨찾기</button><button class="tab" data-view="wrong">오답 랭킹</button><button class="tab" data-view="backup">백업·설정</button></nav>
@@ -103,7 +120,7 @@ populateSounds();buildRangeButtons();updateStats();renderList();$('soundSetting'
     if(vv){document.documentElement.style.setProperty('--vv-height',Math.round(vv.height)+'px');document.documentElement.style.setProperty('--vv-top',Math.max(0,Math.round(vv.offsetTop))+'px');}
     document.body.classList.toggle('keyboard-open',open);
   }
-  document.addEventListener('focusin',e=>{if(e.target&&e.target.id==='answerInput'){update();requestAnimationFrame(update);}});
+  document.addEventListener('focusin',e=>{if(e.target&&e.target.id==='answerInput'){update();requestAnimationFrame(()=>{update();const q=document.querySelector('#view-quiz:not(.hidden)');if(q)q.scrollTop=0;});}});
   document.addEventListener('focusout',e=>{if(e.target&&e.target.id==='answerInput')requestAnimationFrame(update);});
   if(window.visualViewport){window.visualViewport.addEventListener('resize',update);window.visualViewport.addEventListener('scroll',update);}
   window.addEventListener('resize',update);
