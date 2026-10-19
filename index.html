@@ -25,22 +25,37 @@ button,.field,select{touch-action:manipulation}
    Font sizes intentionally do NOT change on keyboard resize. */
 body.keyboard-open #view-quiz .panel{
   position:fixed;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));
-  top:var(--vv-top,0px);height:var(--vv-height,100dvh);bottom:auto;width:auto;max-height:none;
+  top:0;height:var(--vv-height,100dvh);bottom:auto;width:auto;max-height:none;
   display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain;
   padding:12px 14px calc(8px + env(safe-area-inset-bottom));margin:0;z-index:20;
 }
 body.keyboard-open #view-quiz .quiz-head{flex:0 0 auto}
 body.keyboard-open #view-quiz .progress{flex:0 0 auto;margin:7px 0 10px}
-body.keyboard-open #view-quiz #questionArea{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-body.keyboard-open #view-quiz .question{padding:8px 0 12px}
-body.keyboard-open #view-quiz .q-char{font-size:clamp(72px,10vw,112px);line-height:1.12;margin:5px 0}
-body.keyboard-open #view-quiz .q-prompt{font-size:clamp(20px,2.8vw,28px);line-height:1.3;margin:7px 0}
-body.keyboard-open #view-quiz .answer-row{position:sticky;bottom:0;z-index:3;flex:0 0 auto;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--paper)}
-body.keyboard-open #view-quiz .answer-row input{font-size:18px;min-height:48px}
-body.keyboard-open #view-quiz .feedback{margin:10px 0 12px}
+body.keyboard-open #view-quiz #questionArea{
+  flex:1 1 auto;min-height:0;min-width:0;display:flex;flex-direction:column;
+  overflow:hidden;overscroll-behavior:contain
+}
+body.keyboard-open #view-quiz #questionArea>.question{
+  flex:0 0 auto;display:block;visibility:visible;overflow:visible;
+  padding:8px 0 12px;margin:0
+}
+body.keyboard-open #view-quiz .q-char{font-size:clamp(64px,9vw,100px);line-height:1.08;margin:4px 0}
+body.keyboard-open #view-quiz .q-prompt{font-size:clamp(19px,2.5vw,26px);line-height:1.25;margin:6px 0}
+body.keyboard-open #view-quiz .answer-row{
+  position:relative;bottom:auto;z-index:3;flex:0 0 auto;width:100%;
+  padding:8px 0;background:var(--paper)
+}
+body.keyboard-open #view-quiz .answer-row input{font-size:18px;min-height:48px;display:block;visibility:visible}
+body.keyboard-open #view-quiz #questionArea>.feedback{
+  flex:1 1 auto;min-height:0;overflow-y:auto;margin:8px 0 4px
+}
 body.keyboard-open #view-quiz .quiz-bottom{flex:0 0 auto;margin-top:4px;padding:5px 0 0}
 body.keyboard-open #view-quiz .quiz-bottom #quitQuiz{display:none}
 body.keyboard-open #view-quiz .quiz-bottom .controls{width:100%;justify-content:flex-end}
+body.keyboard-open #view-quiz .panel>.quiz-head,
+body.keyboard-open #view-quiz .panel>.progress,
+body.keyboard-open #view-quiz .panel>#questionArea,
+body.keyboard-open #view-quiz .panel>.quiz-bottom{width:100%;min-width:0}
 @media(max-width:700px){
   .app{padding-left:12px;padding-right:12px}
   #view-quiz .panel{padding:14px}
@@ -185,7 +200,7 @@ populateSounds();buildRangeButtons();updateStats();renderList();$('soundSetting'
       lastKeyboardState=keyboardLikely;
     }
     root.style.setProperty('--vv-height',Math.max(180,vv.height)+'px');
-    root.style.setProperty('--vv-top',Math.max(0,vv.offsetTop)+'px');
+    root.style.setProperty('--vv-top','0px');
   };
   if(window.visualViewport){
     window.visualViewport.addEventListener('resize',syncViewport,{passive:true});
