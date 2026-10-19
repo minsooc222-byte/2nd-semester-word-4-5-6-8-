@@ -6,36 +6,54 @@
 .range-grid,.sound-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.range-btn{border:1px solid transparent;border-radius:12px;background:#e9edf4;color:#111827;padding:12px 5px;font-weight:750;min-height:44px}.range-btn.active,.sound-btn.active{background:#dce7ff;border:2px solid #7da0ff;color:#1454e8;padding:11px 4px}.sound-btn{border:1px solid transparent;border-radius:12px;background:#e9edf4;color:#111827;padding:12px 5px;font-weight:750;min-height:44px}.sound-actions{display:flex;gap:8px;margin-top:8px}.range-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.range-actions .btn{background:#e9edf4;border:0}.range-actions .btn:active{transform:scale(.99)}#rangeCount{margin-top:8px}@media(max-width:600px){.range-grid,.sound-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.range-btn,.sound-btn{padding:11px 3px}}
 @media(max-width:600px){.app{padding-left:11px;padding-right:11px}.panel{padding:14px;border-radius:17px}.top{align-items:flex-start;flex-direction:column}.grid2{grid-template-columns:1fr}.list{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}.hanja-item{min-height:82px}.detail{align-items:flex-start;flex-wrap:wrap}.detail .spacer{display:none}.options{gap:5px}.option{padding:15px 2px}.tabs{margin:0 -2px}.quiz-bottom .btn{flex:1}}@media(orientation:landscape) and (max-height:520px){.q-char{font-size:76px;margin:0}.question{padding:0 0 8px}.progress{margin:8px 0 10px}.panel{padding:12px}.tabs{padding-bottom:8px}}
 
-/* iPad / on-screen keyboard layout improvements */
+/* iPad layout: stable sizing and keyboard-aware viewport */
 html,body{min-height:100%;-webkit-text-size-adjust:100%}
 body{overscroll-behavior-y:contain}
-.app{width:100%;max-width:1000px;padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right));padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+.app{width:100%;max-width:1100px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right));padding-bottom:calc(18px + env(safe-area-inset-bottom))}
 .tabs{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 button,.field,select{touch-action:manipulation}
 #view-quiz .panel{min-height:0}
-#view-quiz .question{padding:4px 0 12px}
-#view-quiz .q-char{font-size:clamp(64px,12vw,112px);margin:3px 0;line-height:1.12}
-#view-quiz .q-prompt{font-size:clamp(19px,3vw,26px);margin:5px 0}
-#view-quiz .progress{margin:8px 0 12px}
-#view-quiz .quiz-bottom{position:sticky;bottom:0;margin-top:10px;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--line)}
-#view-quiz .answer-row{position:sticky;bottom:0;z-index:8;background:var(--paper);padding:8px 0 calc(8px + env(safe-area-inset-bottom));}
-#view-quiz .answer-row input{min-height:48px;font-size:17px}
-#view-quiz .feedback{scroll-margin-bottom:150px}
-body.keyboard-open #view-quiz .panel{position:fixed;left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));top:8px;bottom:calc(var(--keyboard-bottom,0px) + 8px);width:auto;max-height:none;overflow-y:auto;overscroll-behavior:contain;padding:10px 12px;margin:0;z-index:20}
-body.keyboard-open #view-quiz .progress{margin:5px 0 9px}
-body.keyboard-open #view-quiz .question{padding:2px 0 8px}
-body.keyboard-open #view-quiz .q-char{font-size:64px;margin:0;line-height:1.08}
-body.keyboard-open #view-quiz .q-prompt{font-size:20px;margin:5px 0;line-height:1.25}
-body.keyboard-open #view-quiz .q-label{font-size:12px}
-body.keyboard-open #view-quiz .answer-row{position:sticky;bottom:0;left:auto;right:auto;z-index:30;display:flex;gap:8px;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--paper);border:0;border-radius:0;box-shadow:none}
-body.keyboard-open #view-quiz .answer-row input{font-size:16px;min-height:46px;flex:1;min-width:0}
-body.keyboard-open #view-quiz .answer-row .btn{min-height:46px}
-body.keyboard-open #view-quiz .quiz-bottom{position:static;flex-wrap:wrap}
-body.keyboard-open #view-quiz .feedback{margin-bottom:12px}
-@media(orientation:landscape){body.keyboard-open #view-quiz .q-char{font-size:48px}body.keyboard-open #view-quiz .q-prompt{font-size:18px}}
-@media(min-width:700px){.app{padding-left:22px;padding-right:22px}.top{align-items:center;flex-direction:row}.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}.list{grid-template-columns:repeat(auto-fill,minmax(112px,1fr))}}
-@media(orientation:landscape) and (max-height:600px){#view-quiz .q-char{font-size:64px}#view-quiz .question{padding:0 0 5px}#view-quiz .progress{margin:5px 0 8px}}
-
+#view-quiz .question{padding:8px 0 14px}
+#view-quiz .q-char{font-size:clamp(72px,10vw,112px);line-height:1.12;margin:5px 0}
+#view-quiz .q-prompt{font-size:clamp(20px,2.8vw,28px);line-height:1.3;margin:7px 0}
+#view-quiz .progress{margin:8px 0 14px}
+#view-quiz .answer-row{display:flex;gap:8px;width:100%;padding:8px 0;background:var(--paper)}
+#view-quiz .answer-row input{flex:1;min-width:0;width:0;font-size:18px;min-height:48px}
+#view-quiz .answer-row .btn{flex-shrink:0;min-height:48px}
+#view-quiz .quiz-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:10px;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--paper)}
+/* Use the actual visible viewport when iPad's software keyboard is open.
+   Font sizes intentionally do NOT change on keyboard resize. */
+body.keyboard-open #view-quiz .panel{
+  position:fixed;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));
+  top:var(--vv-top,0px);height:var(--vv-height,100dvh);bottom:auto;width:auto;max-height:none;
+  display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:contain;
+  padding:12px 14px calc(8px + env(safe-area-inset-bottom));margin:0;z-index:20;
+}
+body.keyboard-open #view-quiz .quiz-head{flex:0 0 auto}
+body.keyboard-open #view-quiz .progress{flex:0 0 auto;margin:7px 0 10px}
+body.keyboard-open #view-quiz #questionArea{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+body.keyboard-open #view-quiz .question{padding:8px 0 12px}
+body.keyboard-open #view-quiz .q-char{font-size:clamp(72px,10vw,112px);line-height:1.12;margin:5px 0}
+body.keyboard-open #view-quiz .q-prompt{font-size:clamp(20px,2.8vw,28px);line-height:1.3;margin:7px 0}
+body.keyboard-open #view-quiz .answer-row{position:sticky;bottom:0;z-index:3;flex:0 0 auto;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--paper)}
+body.keyboard-open #view-quiz .answer-row input{font-size:18px;min-height:48px}
+body.keyboard-open #view-quiz .feedback{margin:10px 0 12px}
+body.keyboard-open #view-quiz .quiz-bottom{flex:0 0 auto;margin-top:4px;padding:5px 0 0}
+body.keyboard-open #view-quiz .quiz-bottom #quitQuiz{display:none}
+body.keyboard-open #view-quiz .quiz-bottom .controls{width:100%;justify-content:flex-end}
+@media(max-width:700px){
+  .app{padding-left:12px;padding-right:12px}
+  #view-quiz .panel{padding:14px}
+  #view-quiz .q-char,body.keyboard-open #view-quiz .q-char{font-size:clamp(68px,15vw,96px)}
+  #view-quiz .q-prompt,body.keyboard-open #view-quiz .q-prompt{font-size:clamp(19px,4vw,24px)}
+  #view-quiz .answer-row .btn{padding:10px 11px}
+}
+@media(orientation:landscape) and (max-height:600px){
+  #view-quiz .q-char,body.keyboard-open #view-quiz .q-char{font-size:clamp(56px,11vh,78px)}
+  #view-quiz .question{padding:2px 0 8px}
+  body.keyboard-open #view-quiz .panel{padding-top:7px}
+  body.keyboard-open #view-quiz .progress{margin:4px 0 6px}
+}
 </style></head><body><main class="app">
 <header class="top"><div><div class="brand">한자 <span>암기장</span></div><div class="sub">내 목록 400자 · 기기 안에 자동 저장</div></div><div class="stats"><span class="pill" id="statTotal">전체 400자</span><span class="pill" id="statFav">★ 즐겨찾기 0</span><span class="pill" id="statWrong">오답 기록 0</span></div></header>
 <nav class="tabs" id="tabs"><button class="tab active" data-view="list">한자 목록</button><button class="tab" data-view="quizsetup">퀴즈</button><button class="tab" data-view="favorites">즐겨찾기</button><button class="tab" data-view="wrong">오답 랭킹</button><button class="tab" data-view="backup">백업·설정</button></nav>
@@ -148,31 +166,41 @@ $('importFile').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{
 $('resetBtn').onclick=()=>{if(confirm('즐겨찾기와 모든 오답·정답 통계를 초기화할까요? 이 작업은 되돌릴 수 없습니다.')){state={favorites:[],wrong:{},correct:{},totalAnswered:0,totalCorrect:0};save();renderList();renderFavorites();renderWrong();$('backupMsg').textContent='학습 기록을 초기화했습니다.';}};
 populateSounds();buildRangeButtons();updateStats();renderList();$('soundSetting').classList.add('hidden');$('matchNotice').classList.add('hidden');$('rangeSetting').classList.add('hidden');
 
-// Detect the iPad/iPhone software keyboard so the answer field and feedback stay visible.
+// Keep the quiz fitted to the actual visible iPad viewport while the software keyboard is open.
 (function(){
+  const root=document.documentElement;
+  let lastKeyboardState=false;
   const syncViewport=()=>{
     const vv=window.visualViewport;
     if(!vv)return;
     const active=document.activeElement;
     const inputFocused=!!active && /INPUT|TEXTAREA/.test(active.tagName);
-    // Use viewport height reduction only. offsetTop fluctuates while iPad Safari
-    // scrolls the visual viewport, which previously made the layout jump.
-    const covered=Math.max(0,window.innerHeight-vv.height);
-    const keyboardLikely=inputFocused && covered>110;
-    document.body.classList.toggle('keyboard-open',!!keyboardLikely);
-    document.documentElement.style.setProperty('--keyboard-bottom',covered+'px');
+    const layoutHeight=window.innerHeight || root.clientHeight;
+    const reduced=layoutHeight-vv.height;
+    const keyboardLikely=inputFocused && reduced>100;
+    // Only toggle layout when keyboard state truly changes; viewport scrolling
+    // updates position/height without changing question font sizes.
+    if(keyboardLikely!==lastKeyboardState){
+      document.body.classList.toggle('keyboard-open',keyboardLikely);
+      lastKeyboardState=keyboardLikely;
+    }
+    root.style.setProperty('--vv-height',Math.max(180,vv.height)+'px');
+    root.style.setProperty('--vv-top',Math.max(0,vv.offsetTop)+'px');
   };
-  if(window.visualViewport){window.visualViewport.addEventListener('resize',syncViewport);window.visualViewport.addEventListener('scroll',syncViewport);}
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',syncViewport,{passive:true});
+    window.visualViewport.addEventListener('scroll',syncViewport,{passive:true});
+  }
   document.addEventListener('focusin',e=>{
     if(/INPUT|TEXTAREA/.test(e.target.tagName)){
       syncViewport();
-      setTimeout(syncViewport,80);
-      // Avoid scrolling the input to the center after the iPad keyboard opens;
-      // that scroll often pushes the question itself out of view.
+      // A second measurement catches Safari's post-focus viewport adjustment.
+      requestAnimationFrame(syncViewport);
     }
   });
-  document.addEventListener('focusout',()=>setTimeout(syncViewport,100));
-  window.addEventListener('resize',syncViewport);syncViewport();
+  document.addEventListener('focusout',()=>setTimeout(syncViewport,120));
+  window.addEventListener('resize',syncViewport,{passive:true});
+  syncViewport();
 })();
 
 </script></body></html>
