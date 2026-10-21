@@ -38,7 +38,10 @@ const DATA=[{"char": "復", "mean": "회복할/다시", "sound": "복/부"}, {"c
 const STORE='hanja400_study_v1';
 let state={favorites:[],wrong:{},correct:{},totalAnswered:0,totalCorrect:0};
 try{const saved=JSON.parse(localStorage.getItem(STORE)||'{}');state={...state,...saved};}catch(e){}
-state.customEntries=Array.isArray(state.customEntries)?state.customEntries:[];const BASE_COUNT=DATA.length;state.customEntries.forEach((e,i)=>DATA.push({...e,custom:true,index:BASE_COUNT+i}));
+state.customEntries=Array.isArray(state.customEntries)?state.customEntries:[];
+// 기존에 復歸의 음가가 '복'으로 저장된 항목을 전체 음가 '복귀'로 보정
+state.customEntries.forEach(e=>{if(e && e.char==='復歸' && e.sound==='복')e.sound='복귀';});
+const BASE_COUNT=DATA.length;state.customEntries.forEach((e,i)=>DATA.push({...e,custom:true,index:BASE_COUNT+i}));
 const $=id=>document.getElementById(id);
 const wrongCount=e=>Number(state.wrong[e.char]||0);
 const isFav=e=>state.favorites.includes(e.char);
@@ -46,6 +49,8 @@ const displayMeaning=e=>`${e.mean} ${e.sound}`;
 const norm=s=>(s||'').replace(/\s+/g,'').normalize('NFC');
 let selectedChar=null,page=0,pageSize=50,quiz=[],qi=0,quizMode='mean',answered=false,quizResults=[],wrongRedo=false;
 function save(){localStorage.setItem(STORE,JSON.stringify(state));updateStats();}
+// 보정된 사용자 단어 음가를 기기 저장 데이터에도 반영
+if(state.customEntries.some(e=>e && e.char==='復歸' && e.sound==='복귀')){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}}
 function updateStats(){$('statTotal').textContent=`한자 ${BASE_COUNT}자 · 추가 ${state.customEntries.length}개`;$('statFav').textContent=`★ 즐겨찾기 ${state.favorites.length}`;$('statWrong').textContent=`오답 기록 ${Object.values(state.wrong).filter(n=>n>0).length}`;}
 function showView(v){document.querySelectorAll('.view').forEach(x=>x.classList.add('hidden'));$('view-'+v).classList.remove('hidden');document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===v));if(v==='favorites')renderFavorites();if(v==='wrong')renderWrong();if(v==='list')renderList();}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;showView(b.dataset.view);});
@@ -59,9 +64,9 @@ function relatedCustomWords(e){
 function relatedWordsMarkup(e){
   const words=relatedCustomWords(e);
   if(!words.length) return '';
-  return `<div class="word-card"><b>연결된 단어</b>${words.map(w=>`<div style="margin-top:6px"><strong>${escapeHtml(w.char)}</strong> · 음가: ${escapeHtml(w.sound)}: ${escapeHtml(w.mean)}</div>`).join('')}</div>`;
+  return `<div class="word-card"><b>연관된 단어</b>${words.map(w=>`<div style="margin-top:6px"><strong>${escapeHtml(w.char)}</strong> · 음가: ${escapeHtml(w.sound)}: ${escapeHtml(w.mean)}</div>`).join('')}</div>`;
 }
-function detailMarkup(e){return `<div class="inline-detail"><div class="big">${escapeHtml(e.char)}</div><div class="detail-info"><h3 style="margin:0 0 4px">${escapeHtml(e.mean)} ${escapeHtml(e.sound)}</h3><p>뜻/의미: ${escapeHtml(e.mean)}</p><p>음가: ${escapeHtml(e.sound)} · ${e.custom?'내가 추가한 항목':'원래 목록 #'+(DATA.indexOf(e)+1)}</p><p>개별 오답 횟수: <b>${wrongCount(e)}회</b></p>${relatedWordsMarkup(e)}</div><div class="detail-tools"><button class="btn ${isFav(e)?'soft':''}" data-detail-fav="${escapeHtml(e.char)}">${isFav(e)?'★ 즐겨찾기 해제':'☆ 즐겨찾기 추가'}</button><button class="btn danger" data-reset-wrong="${escapeHtml(e.char)}">오답 개수 초기화</button>${e.custom?`<button class="btn danger" data-delete-custom="${escapeHtml(e.char)}">삭제</button>`:''}</div></div>`}
+function detailMarkup(e){return `<div class="inline-detail"><div class="big">${escapeHtml(e.char)}</div><div class="detail-info">${e.custom?'':`<h3 style="margin:0 0 4px">${escapeHtml(e.mean)} ${escapeHtml(e.sound)}</h3>`}<p>뜻/의미: ${escapeHtml(e.mean)}</p><p>음가: ${escapeHtml(e.sound)}${e.custom?'':' · 원래 목록 #'+(DATA.indexOf(e)+1)}</p><p>개별 오답 횟수: <b>${wrongCount(e)}회</b></p>${relatedWordsMarkup(e)}</div><div class="detail-tools"><button class="btn ${isFav(e)?'soft':''}" data-detail-fav="${escapeHtml(e.char)}">${isFav(e)?'★ 즐겨찾기 해제':'☆ 즐겨찾기 추가'}</button><button class="btn danger" data-reset-wrong="${escapeHtml(e.char)}">오답 개수 초기화</button>${e.custom?`<button class="btn danger" data-delete-custom="${escapeHtml(e.char)}">삭제</button>`:''}</div></div>`}
 function renderList(){const a=filteredData(),pages=Math.max(1,Math.ceil(a.length/pageSize));page=Math.min(page,pages-1);const slice=a.slice(page*pageSize,(page+1)*pageSize);$('hanjaList').innerHTML=slice.map(e=>`<button class="hanja-item ${isFav(e)?'favorite':''} ${wrongCount(e)?'wrong':''} ${isFav(e)&&wrongCount(e)>0?'both-status':''} ${selectedChar===e.char?'selected':''}" style="${wrongCount(e)?`--wrong:rgba(185,60,53,${Math.min(.12+wrongCount(e)*.07,.75)})`:''}" data-char="${escapeHtml(e.char)}"><span class="num">${e.custom?'내 단어':'#'+(DATA.indexOf(e)+1)}</span>${isFav(e)?'<span class="fav">★</span>':''}<span class="char">${escapeHtml(e.char)}</span><span class="mean">${(e.custom||String(e.char).length>1)?escapeHtml(e.sound):`${escapeHtml(e.mean)} ${escapeHtml(e.sound)}`}</span></button>${selectedChar===e.char?detailMarkup(e):''}`).join('')||'<p class="muted">검색 결과가 없습니다.</p>';$('pageLabel').textContent=`${page+1} / ${pages} · ${a.length}개`;$('prevPage').disabled=page===0;$('nextPage').disabled=page>=pages-1;}
 function renderDetail(){renderList();}
 function toggleFav(c){state.favorites=isFav({char:c})?state.favorites.filter(x=>x!==c):[...state.favorites,c];save();renderList();renderFavorites();renderWrong();}
