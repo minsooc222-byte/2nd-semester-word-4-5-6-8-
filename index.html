@@ -40,8 +40,15 @@ const DATA=[{"char": "復", "mean": "회복할/다시", "sound": "복/부"}, {"c
 const STORE='hanja400_study_v1';
 let state={favorites:[],wrong:{},correct:{},totalAnswered:0,totalCorrect:0};
 try{const saved=JSON.parse(localStorage.getItem(STORE)||'{}');state={...state,...saved};}catch(e){}
-state.customEntries=Array.isArray(state.customEntries)?state.customEntries:[];
-state.textbookEntries=Array.isArray(state.textbookEntries)?state.textbookEntries:[];
+// 이전 버전/백업에서 필드 이름이 달라도 표기·뜻·음을 정상화한다.
+function normalizeEntry(e={}){
+  const char=e.char??e.hanzi??e.word??e.name??e.term??'';
+  const mean=e.mean??e.meaning??e.definition??e.gloss??e.뜻??'';
+  const sound=e.sound??e.reading??e.pronunciation??e.korean??e.음??'';
+  return {...e,char:String(char),mean:String(mean),sound:String(sound)};
+}
+state.customEntries=(Array.isArray(state.customEntries)?state.customEntries:[]).map(normalizeEntry);
+state.textbookEntries=(Array.isArray(state.textbookEntries)?state.textbookEntries:[]).map(normalizeEntry);
 state.extraReadings=state.extraReadings&&typeof state.extraReadings==='object'?state.extraReadings:{};
 state.idioms=Array.isArray(state.idioms)?state.idioms:[];state.idiomFavorites=Array.isArray(state.idiomFavorites)?state.idiomFavorites:[];
 // 기존에 復歸의 음가가 '복'으로 저장된 항목을 전체 음가 '복귀'로 보정
@@ -67,7 +74,7 @@ function relatedCustomWords(e){
   return DATA.filter(x=>x.custom && x.char!==e.char && x.char.includes(e.char));
 }
 function idiomCharDetails(idiom){return Array.from(String(idiom||'')).filter(ch=>/\p{Script=Han}/u.test(ch)).map(ch=>{const e=DATA.find(x=>x.char===ch)||state.textbookEntries.find(x=>String(x.char||'').includes(ch));return e?`${ch} — ${e.mean} ${e.sound}${e.textbook?' (교과서)':''}`:`${ch} — 뜻·음 미등록`;});}
-function idiomText(x){return x.name||x.char||'';} function idiomHanzi(x){return x.hanzi||x.char||'';} function idiomMeaning(x){return x.meaning||x.mean||'';} function idiomReading(x){return x.name||x.sound||'';} function idiomsForChar(e){const chars=Array.from(String(e.char||''));return state.idioms.filter(x=>chars.some(ch=>String(idiomHanzi(x)).includes(ch)));}
+function idiomText(x){return x.name||x.char||x.word||x.term||'';} function idiomHanzi(x){return x.hanzi||x.char||x.word||x.term||'';} function idiomMeaning(x){return x.meaning||x.mean||x.definition||x.gloss||'';} function idiomReading(x){return x.sound||x.reading||x.name||'';} function idiomsForChar(e){const chars=Array.from(String(e.char||''));return state.idioms.filter(x=>chars.some(ch=>String(idiomHanzi(x)).includes(ch)));}
 function idiomsMarkup(e){const a=idiomsForChar(e);if(!a.length)return '';return `<div class="word-card"><b>관련 고사성어</b>${a.map(x=>`<div style="margin-top:6px"><strong>${escapeHtml(idiomHanzi(x))} (${escapeHtml(idiomText(x))})</strong> · ${escapeHtml(idiomReading(x))} — ${escapeHtml(idiomMeaning(x))}</div>`).join('')}</div>`;}
 function relatedWordsMarkup(e){
   const words=relatedCustomWords(e);
@@ -116,7 +123,7 @@ $('addIdiom').onclick=()=>{const char=$('idiomChar').value.trim(),sound=$('idiom
 $('importIdiomsJson').onclick=()=>{try{const parsed=JSON.parse($('idiomJsonImport').value);if(!Array.isArray(parsed))throw new Error('JSON의 최상위는 배열이어야 합니다.');const incoming=parsed.map((x,i)=>{const name=String(x.name||x.char||'').trim(),hanzi=String(x.hanzi||x.char||'').trim(),meaning=String(x.meaning||x.mean||'').trim(),charMeaning=String(x.charMeaning||'').trim();if(!name||!hanzi||!meaning)throw new Error(`${i+1}번째 항목에 name, hanzi, meaning이 필요합니다.`);return {id:x.id??state.idioms.length+i+1,name,hanzi,meaning,charMeaning};});state.idioms.push(...incoming);save();renderIdioms();$('idiomMsg').textContent=`고사성어 ${incoming.length}개를 가져왔습니다. 총 ${state.idioms.length}개입니다.`;}catch(err){$('idiomMsg').textContent='가져오기 실패: '+err.message;}};
 $('idiomList').addEventListener('click',ev=>{const ex=ev.target.closest('[data-expand-idiom]');if(ex){expandedIdiom=expandedIdiom===Number(ex.dataset.expandIdiom)?-1:Number(ex.dataset.expandIdiom);renderIdioms();return;}const f=ev.target.closest('[data-idiom-fav]');if(f){const i=Number(f.dataset.idiomFav);state.idiomFavorites=state.idiomFavorites||[];state.idiomFavorites=idiomFav(i)?state.idiomFavorites.filter(x=>x!==i):[...state.idiomFavorites,i];save();renderIdioms();return;}const d=ev.target.closest('[data-delete-idiom]');if(d){const i=Number(d.dataset.deleteIdiom);if(confirm('이 고사성어를 삭제할까요?')){state.idioms.splice(i,1);state.wrong={...state.wrong};delete state.wrong[idiomKey(i)];expandedIdiom=-1;idiomSelectedRanges.clear();save();renderIdioms();}}});
 $('idiomSelectAll').onclick=()=>{idiomSelectedRanges=new Set(Array.from({length:Math.ceil(state.idioms.length/10)},(_,i)=>String(i)));renderIdiomRanges();};$('idiomClearAll').onclick=()=>{idiomSelectedRanges.clear();renderIdiomRanges();};$('startIdiomQuiz').onclick=()=>{if(!idiomSelectedRanges.size){alert('고사성어 범위를 하나 이상 선택해 주세요.');return;}const chosen=state.idioms.filter((x,i)=>idiomSelectedRanges.has(String(Math.floor(i/10)))).map(x=>({...x,char:idiomHanzi(x),mean:idiomMeaning(x),sound:idiomReading(x),custom:true,idiom:true,_idiomIndex:state.idioms.indexOf(x)}));if(!chosen.length){alert('선택한 범위에 고사성어가 없습니다.');return;}startQuiz(chosen);};
-let shuffleOrder=true;function setOrderMode(shuffle){shuffleOrder=shuffle;$('shuffleOrder').classList.toggle('soft',shuffle);$('originalOrder').classList.toggle('soft',!shuffle);$('shuffleOrder').setAttribute('aria-pressed',shuffle?'true':'false');$('originalOrder').setAttribute('aria-pressed',shuffle?'false':'true');$('orderHelp').textContent=shuffle?'선택 범위 안에서 한자 순서를 무작위로 섞습니다.':'원래 한자 목록 순서대로 출제합니다.';} $('shuffleOrder').onclick=()=>setOrderMode(true);$('originalOrder').onclick=()=>setOrderMode(false);function startQuiz(custom=null){quizMode=$('quizMode').value;let pool=custom||getScope();if(quizMode==='match'){const selectedSound=$('soundGrid').querySelector('.sound-btn.active');const sound=selectedSound?.dataset.sound||'';if(!sound){alert('먼저 같은 음을 선택해 주세요.');return;}pool=DATA.filter(e=>e.sound.split('/').includes(sound));if(pool.length<2){alert('이 음으로 출제할 한자가 부족합니다.');return;}}
+let shuffleOrder=true;function setOrderMode(shuffle){shuffleOrder=shuffle;$('shuffleOrder').classList.toggle('soft',shuffle);$('originalOrder').classList.toggle('soft',!shuffle);$('shuffleOrder').setAttribute('aria-pressed',shuffle?'true':'false');$('originalOrder').setAttribute('aria-pressed',shuffle?'false':'true');$('orderHelp').textContent=shuffle?'선택 범위 안에서 한자 순서를 무작위로 섞습니다.':'원래 한자 목록 순서대로 출제합니다.';} $('shuffleOrder').onclick=()=>setOrderMode(true);$('originalOrder').onclick=()=>setOrderMode(false);function startQuiz(custom=null){quizMode=$('quizMode').value;let pool=(custom||getScope()).map(normalizeEntry);if(quizMode==='match'){const selectedSound=$('soundGrid').querySelector('.sound-btn.active');const sound=selectedSound?.dataset.sound||'';if(!sound){alert('먼저 같은 음을 선택해 주세요.');return;}pool=DATA.filter(e=>e.sound.split('/').includes(sound));if(pool.length<2){alert('이 음으로 출제할 한자가 부족합니다.');return;}}
 if(!pool.length){alert('선택한 범위에 출제할 한자가 없습니다.');return;}
 let n=$('quizCount').value==='all'?pool.length:Number($('quizCount').value);if(custom)n=custom.length;quiz=shuffleOrder?shuffle(pool):[...pool];if(n<=pool.length)quiz=quiz.slice(0,n);else{quiz=shuffleOrder?shuffle(pool):[...pool];while(quiz.length<n)quiz.push(pool[quiz.length%pool.length]);if(shuffleOrder)quiz=shuffle(quiz);}qi=0;answered=false;quizResults=[];wrongRedo=!!custom;showView('quiz');$('quizTypeLabel').textContent=({mean:'뜻·음 → 한자',char:'한자 → 뜻·음',match:'같은 음 한자 찾기'})[quizMode];renderQuestion();}
 function renderQuestion(){if(qi>=quiz.length){finishQuiz();return;}answered=false;const e=quiz[qi];$('quizProgressLabel').textContent=`${qi+1} / ${quiz.length}`;$('progressBar').style.width=`${qi/quiz.length*100}%`;$('nextQuestion').disabled=true;$('nextQuestion').textContent=qi===quiz.length-1?'결과 보기 ↵':'다음 문제 ↵';let html='';
@@ -130,12 +137,11 @@ if(quizMode!=='match'){const inp=$('answerInput');$('submitAnswer').onclick=subm
 else{$('questionArea').querySelectorAll('[data-option]').forEach(b=>b.onclick=()=>submitMatch(b.dataset.option));}
 $('progressBar').style.width=`${qi/quiz.length*100}%`;}
 function answerMatches(raw,e){
-  // 띄어쓰기·구분 기호를 무시하고 기본 뜻·음과 추가 뜻·음을 모두 정답 후보로 검사한다.
   const clean=s=>norm(String(s||'')).replace(/[\s·ㆍ,，、/／|+＋-]/g,'').toLowerCase();
-  const answer=clean(raw);
-  if(!answer) return false;
+  const answer=clean(raw); if(!answer) return false;
   const extra=state.extraReadings && state.extraReadings[e.char];
   const readings=[{mean:e.mean,sound:e.sound},...(Array.isArray(extra)?extra:[])];
+  const candidateGroups=[];
   for(const r of readings){
     const means=String(r.mean||'').split(/[\/／,，、|]/).map(x=>x.trim()).filter(Boolean);
     const sounds=String(r.sound||'').split(/[\/／,，、|]/).map(x=>x.trim()).filter(Boolean);
@@ -143,28 +149,29 @@ function answerMatches(raw,e){
     for(const m of means) for(const so of sounds){candidates.add(clean(m+so));candidates.add(clean(so+m));}
     candidates.add(clean(r.mean+r.sound)); candidates.add(clean(r.sound+r.mean));
     if(means.length>1 && sounds.length>1){
-      candidates.add(clean(means.join('')+sounds.join('')));
-      candidates.add(clean(sounds.join('')+means.join('')));
-      candidates.add(clean(means.map((m,i)=>m+(sounds[i]||'')).join('')));
-      candidates.add(clean(sounds.map((so,i)=>(means[i]||'')+so).join('')));
+      candidates.add(clean(means.join('')+sounds.join(''))); candidates.add(clean(sounds.join('')+means.join('')));
+      candidates.add(clean(means.map((m,i)=>m+(sounds[i]||'')).join(''))); candidates.add(clean(sounds.map((so,i)=>(means[i]||'')+so).join('')));
     }
+    candidateGroups.push([...candidates].filter(Boolean));
     if(candidates.has(answer)) return true;
   }
-  // 여러 글자로 된 단어·성어는 저장된 음(읽는 법)만 입력해도 정답으로 인정한다.
-  // 일부 기존 저장 데이터에는 custom/textbook 표시가 빠져 있을 수 있으므로
-  // 항목 종류 플래그가 아니라 글자 수를 기준으로 판정한다.
-  const multiChar=Array.from(String(e.char||'').replace(/\s/g,'')).length>1;
-  if(multiChar){
-    const soundOptions=String(e.sound||'').split(/[\/／,，、|]/).filter(Boolean).map(clean);
-    if(soundOptions.includes(answer) || clean(e.sound)===answer) return true;
+  // 기본 뜻·음과 추가 뜻·음을 이어서 입력해도 정답 처리한다.
+  if(candidateGroups.length>1){
+    for(const groups of [candidateGroups,[...candidateGroups].reverse()]){
+      let combined=new Set(['']);
+      for(const group of groups){const next=new Set();for(const prefix of combined)for(const candidate of group)next.add(prefix+candidate);combined=next;if(combined.size>5000)break;}
+      if(combined.has(answer))return true;
+    }
   }
+  const multiChar=Array.from(String(e.char||'').replace(/\s/g,'')).length>1;
+  if(multiChar){const sounds=String(e.sound||'').split(/[\/／,，、|]/).filter(Boolean).map(clean);if(sounds.includes(answer)||clean(e.sound)===answer)return true;}
   return false;
 }
 function submitAnswer(){if(answered)return;const e=quiz[qi],raw=$('answerInput').value.trim();if(!raw){$('answerInput').focus();return;}let correct=false;if(quizMode==='mean')correct=norm(raw)===norm(e.char);else correct=answerMatches(raw,e);recordAnswer(e,raw,correct);showFeedback(e,raw,correct);$('nextQuestion').disabled=false;}
 function submitMatch(c){if(answered)return;const e=quiz[qi],correct=quiz[qi]._matchCorrect,ok=c===correct.char;document.querySelectorAll('[data-option]').forEach(b=>{b.disabled=true;if(b.dataset.option===correct.char)b.classList.add('correct');if(b.dataset.option===c&&!ok)b.classList.add('incorrect');});recordAnswer(e,c,ok,correct.char);$('feedback').innerHTML=`<div class="feedback ${ok?'':'bad'}"><strong>${ok?'정답입니다!':'오답입니다.'}</strong><div>정답: <b style="font-size:24px">${correct.char}</b> — ${correct.mean} ${correct.sound}</div><div>문제 한자/단어: ${escapeHtml(e.char)} — ${escapeHtml(e.mean)} ${escapeHtml(e.sound)}</div>${correct.custom?`<div class=\"word-card\">추가 항목: ${escapeHtml(correct.char)} — ${escapeHtml(correct.sound)}: ${escapeHtml(correct.mean)}</div>`:''}${e.custom?`<div class=\"word-card\">문제 추가 항목: ${escapeHtml(e.char)} — ${escapeHtml(e.sound)}: ${escapeHtml(e.mean)}</div>`:''}</div>`;$('nextQuestion').disabled=false;}
 function recordAnswer(e,raw,correct,matchCorrect=null){answered=true;state.totalAnswered++;if(correct)state.totalCorrect++;else {const wk=e.idiom?`idiom:${e._idiomIndex}`:e.char;state.wrong[wk]=(state.wrong[wk]||0)+1;}const ck=e.idiom?`idiom:${e._idiomIndex}`:e.char;state.correct[ck]=(state.correct[ck]||0)+(correct?1:0);save();quizResults.push({entry:e,raw,correct,matchCorrect});}
 function keepFeedbackVisible(){const view=$('view-quiz');const feedback=$('questionArea').querySelector('.feedback');const vv=window.visualViewport;if(!view||!feedback)return;const visibleHeight=vv?vv.height:window.innerHeight;const rect=feedback.getBoundingClientRect();if(rect.bottom>visibleHeight-12){view.scrollTop+=rect.bottom-visibleHeight+24;}else if(rect.top<8){view.scrollTop-=8-rect.top;} }
-function showFeedback(e,raw,correct){const box=document.createElement('div');box.className='feedback '+(correct?'':'bad');const right=quizMode==='mean'?e.char:`${e.mean} ${e.sound}`;box.innerHTML=`<strong>${correct?'정답입니다!':'오답입니다.'}</strong><div>내 답: <b>${escapeHtml(raw)}</b></div><div>정답: <b>${right}</b></div><div class="muted" style="margin-top:4px">${escapeHtml(e.char)} · ${escapeHtml(e.mean)} · 음 ${escapeHtml(e.sound)}</div>${e.custom?`<div class="word-card"><b>내가 추가한 단어</b><div>${escapeHtml(e.char)} — ${escapeHtml(e.sound)}: ${escapeHtml(e.mean)}</div></div>`:''}${e.idiom?`<div class="word-card"><b>각 한자의 뜻·음</b>${idiomCharDetails(e.char).map(t=>`<div class="muted">${escapeHtml(t)}</div>`).join('')}${e.charMeaning?`<div class="muted">제공된 글자 풀이: ${escapeHtml(e.charMeaning)}</div>`:''}</div>`:''}${correct?relatedWordsMarkup(e):''}`;$('questionArea').appendChild(box);requestAnimationFrame(keepFeedbackVisible);}
+function showFeedback(e,raw,correct){const box=document.createElement('div');box.className='feedback '+(correct?'':'bad');const right=quizMode==='mean'?(e.char||'정답 데이터 없음'):`${e.mean||'뜻 없음'} ${e.sound||'음 없음'}`;box.innerHTML=`<strong>${correct?'정답입니다!':'오답입니다.'}</strong><div>내 답: <b>${escapeHtml(raw)}</b></div><div>정답: <b>${right}</b></div><div class="muted" style="margin-top:4px">${escapeHtml(e.char)} · ${escapeHtml(e.mean)} · 음 ${escapeHtml(e.sound)}</div>${e.custom?`<div class="word-card"><b>내가 추가한 단어</b><div>${escapeHtml(e.char)} — ${escapeHtml(e.sound)}: ${escapeHtml(e.mean)}</div></div>`:''}${e.idiom?`<div class="word-card"><b>각 한자의 뜻·음</b>${idiomCharDetails(e.char).map(t=>`<div class="muted">${escapeHtml(t)}</div>`).join('')}${e.charMeaning?`<div class="muted">제공된 글자 풀이: ${escapeHtml(e.charMeaning)}</div>`:''}</div>`:''}${correct?relatedWordsMarkup(e):''}`;$('questionArea').appendChild(box);requestAnimationFrame(keepFeedbackVisible);}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function next(){if(!answered&&qi>=quizResults.length)return;const keepFocus=document.activeElement&&document.activeElement.id==='answerInput';qi++;renderQuestion();if(keepFocus){const n=$('answerInput');if(n){try{n.focus({preventScroll:true})}catch(e){n.focus();}}}}
 $('nextQuestion').onclick=next;$('previousQuestion').onclick=()=>{if(qi>0){qi--;renderQuestion();}};$('quitQuiz').onclick=()=>{if(confirm('퀴즈를 종료할까요? 지금까지 답한 기록은 저장됩니다.'))showView('quizsetup');};
