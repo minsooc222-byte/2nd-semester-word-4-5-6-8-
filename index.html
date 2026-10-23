@@ -126,8 +126,14 @@ function answerMatches(raw,e){
     for(const m of means) for(const so of sounds){candidates.add(clean(m+so));candidates.add(clean(so+m));}
     candidates.add(clean(r.mean+r.sound)); candidates.add(clean(r.sound+r.mean));
     if(means.length>1 && sounds.length>1){
+      // Accept all common input orders for multi-reading characters:
+      // meanings then readings, readings then meanings, and paired sequence
+      // e.g. 바꿀/쉬울 역/이 -> 바꿀역쉬울이.
       candidates.add(clean(means.join('')+sounds.join('')));
       candidates.add(clean(sounds.join('')+means.join('')));
+      candidates.add(clean(means.map((m,i)=>m+(sounds[i]||'')).join('')));
+      candidates.add(clean(sounds.map((so,i)=>(means[i]||'')+so).join('')));
+      candidates.add(clean(means.map((m,i)=>m+' '+(sounds[i]||'')).join('')));
     }
     if(candidates.has(answer)) return true;
   }
